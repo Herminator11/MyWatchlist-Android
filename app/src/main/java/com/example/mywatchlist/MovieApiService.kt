@@ -3,10 +3,37 @@ package com.example.mywatchlist
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 import com.google.gson.annotations.SerializedName
 
 const val TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
+const val TMDB_API_KEY = "REDACTED"
+
+// ── Detail-Antworten (für das Detail-Popup) ───────────────────
+// search/multi liefert KEINE Staffel-/Folgenzahl – dafür braucht
+// es die dedizierten Detail-Endpunkte /tv/{id} bzw. /movie/{id}.
+data class TvDetails(
+    @SerializedName("number_of_seasons")
+    val numberOfSeasons: Int?,
+
+    @SerializedName("number_of_episodes")
+    val numberOfEpisodes: Int?,
+
+    @SerializedName("first_air_date")
+    val firstAirDate: String?,
+
+    val status: String?
+)
+
+data class MovieDetails(
+    val runtime: Int?, // Laufzeit in Minuten
+
+    @SerializedName("release_date")
+    val releaseDate: String?,
+
+    val status: String?
+)
 
 data class MovieSearchResponse(
     val results: List<TmdbMovie>
@@ -56,9 +83,23 @@ interface MovieApiService {
     @GET("search/multi")
     suspend fun searchMulti(
         @Query("query") query: String,
-        @Query("api_key") apiKey: String = "REDACTED",
+        @Query("api_key") apiKey: String = TMDB_API_KEY,
         @Query("language") language: String = "de-DE"
     ): MovieSearchResponse
+
+    @GET("tv/{id}")
+    suspend fun getTvDetails(
+        @Path("id") id: Int,
+        @Query("api_key") apiKey: String = TMDB_API_KEY,
+        @Query("language") language: String = "de-DE"
+    ): TvDetails
+
+    @GET("movie/{id}")
+    suspend fun getMovieDetails(
+        @Path("id") id: Int,
+        @Query("api_key") apiKey: String = TMDB_API_KEY,
+        @Query("language") language: String = "de-DE"
+    ): MovieDetails
 }
 
 object MovieApi {

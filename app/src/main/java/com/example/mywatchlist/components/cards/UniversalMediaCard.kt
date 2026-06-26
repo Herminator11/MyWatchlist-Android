@@ -47,11 +47,15 @@ fun UniversalMediaCard(
     modifier: Modifier = Modifier,
     onFinishClick: (() -> Unit)? = null,
     onMoveClick: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
     showFavoriteBadge: Boolean = false,
     dragHandle: (@Composable () -> Unit)? = null
 ) {
     Card(
-        modifier = modifier.fillMaxWidth().height(110.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = AppTheme.DarkSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)

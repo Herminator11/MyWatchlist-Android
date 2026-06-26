@@ -1,5 +1,6 @@
 package com.example.mywatchlist
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +13,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -21,6 +23,7 @@ import com.example.mywatchlist.components.cards.SwipeableMediaCard
 import com.example.mywatchlist.components.cards.UniversalMediaCard
 import com.example.mywatchlist.components.common.ScreenHeader
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
+import com.example.mywatchlist.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 
@@ -35,6 +38,11 @@ fun WantToWatchScreen(
     val movieEntries by libraryViewModel.wantToWatchMovies.collectAsState()
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var selectedMovieForMove by remember { mutableStateOf<MovieEntity?>(null) }
+    var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
+    val blurRadius by animateDpAsState(
+        targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        label = "detail_blur"
+    )
 
     val tabs = listOf("Serien", "Filme")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
@@ -44,6 +52,7 @@ fun WantToWatchScreen(
         modifier = modifier
             .fillMaxSize()
             .background(AppTheme.DarkBg)
+            .blur(blurRadius)
     ) {
         TabRow(
             selectedTabIndex = pagerState.currentPage,
@@ -103,7 +112,8 @@ fun WantToWatchScreen(
                         ) {
                             UniversalMediaCard(
                                 item = entity,
-                                onMoveClick = { selectedMovieForMove = entity }
+                                onMoveClick = { selectedMovieForMove = entity },
+                                onClick = { movieForDetail = entity }
                             )
                         }
                     }
@@ -118,6 +128,15 @@ fun WantToWatchScreen(
             movie = movie,
             libraryViewModel = libraryViewModel,
             onDismiss = { selectedMovieForEdit = null }
+        )
+    }
+
+    // Detail-Popup
+    movieForDetail?.let { movie ->
+        MediaDetailDialog(
+            movie = movie,
+            lists = libraryViewModel.getListsForEntity(movie),
+            onDismiss = { movieForDetail = null }
         )
     }
 

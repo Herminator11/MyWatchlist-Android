@@ -1,5 +1,6 @@
 package com.example.mywatchlist
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
@@ -15,6 +17,7 @@ import com.example.mywatchlist.components.cards.SwipeableMediaCard
 import com.example.mywatchlist.components.cards.UniversalMediaCard
 import com.example.mywatchlist.components.common.ScreenHeader
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
+import com.example.mywatchlist.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,11 +30,17 @@ fun CurrentlyWatchingScreen(
     val currentlyWatchingList = allSavedMovies.filter { it.listType == "CURRENTLY_WATCHING" }
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDatePicker by remember { mutableStateOf<MovieEntity?>(null) }
+    var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
+    val blurRadius by animateDpAsState(
+        targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        label = "detail_blur"
+    )
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(AppTheme.DarkBg)
+            .blur(blurRadius)
     ) {
         if (currentlyWatchingList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -59,7 +68,8 @@ fun CurrentlyWatchingScreen(
                         UniversalMediaCard(
                             item = movieEntity,
                             // Done-Button öffnet DatePicker (Story 3.2)
-                            onFinishClick = { movieForDatePicker = movieEntity }
+                            onFinishClick = { movieForDatePicker = movieEntity },
+                            onClick = { movieForDetail = movieEntity }
                         )
                     }
                 }
@@ -73,6 +83,15 @@ fun CurrentlyWatchingScreen(
             movie = movie,
             libraryViewModel = libraryViewModel,
             onDismiss = { selectedMovieForEdit = null }
+        )
+    }
+
+    // Detail-Popup
+    movieForDetail?.let { movie ->
+        MediaDetailDialog(
+            movie = movie,
+            lists = libraryViewModel.getListsForEntity(movie),
+            onDismiss = { movieForDetail = null }
         )
     }
 
