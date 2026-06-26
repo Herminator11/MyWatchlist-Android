@@ -1,12 +1,17 @@
 package com.example.mywatchlist.components.sheets
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +19,8 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,6 +34,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -37,14 +45,17 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
@@ -60,6 +71,7 @@ import com.example.mywatchlist.ui.theme.CinemaTheme
 import com.example.mywatchlist.ui.theme.DisplaySerif
 import com.example.mywatchlist.ui.theme.SpecMono
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
@@ -116,6 +128,9 @@ fun MediaDetailDialog(
     var mounted by remember { mutableStateOf(false) }
     var revealed by remember { mutableIntStateOf(0) }
     LaunchedEffectReveal { mounted = true; revealed = it }
+
+    // Interaktives Holo-Poster (Tap aufs Poster)
+    var showInteractivePoster by remember { mutableStateOf(false) }
 
     val containerScale by animateFloatAsState(
         targetValue = if (mounted) 1f else 0.90f,
@@ -174,7 +189,11 @@ fun MediaDetailDialog(
                         // ── HEADER: Poster + Titel + Schließen ──
                         RevealItem(index = 1, revealed = revealed) {
                             Row(verticalAlignment = Alignment.Top) {
-                                PosterFrame(posterPath = movie.posterPath, title = movie.title)
+                                PosterFrame(
+                                    posterPath = movie.posterPath,
+                                    title = movie.title,
+                                    onClick = { showInteractivePoster = true }
+                                )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.Top) {
@@ -263,6 +282,147 @@ fun MediaDetailDialog(
             }
         }
     }
+
+    // ── INTERAKTIVES HOLO-POSTER ─────────────────────────────
+    if (showInteractivePoster && movie.posterPath != null) {
+        InteractivePosterDialog(
+            posterPath = movie.posterPath,
+            title = movie.title,
+            onDismiss = { showInteractivePoster = false }
+        )
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// INTERAKTIVES HOLO-POSTER
+// Tap aufs Poster → große Karte, die man mit dem Finger in 3D
+// kippen kann; ein Glanzlicht (Specular) wandert über die Karte.
+// Loslassen → federt zurück in die Ebene.
+// ═════════════════════════════════════════════════════════════
+@Composable
+private fun InteractivePosterDialog(
+    posterPath: String,
+    title: String,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        val scope = rememberCoroutineScope()
+        val densityF = LocalDensity.current.density
+        val maxTilt = 18f
+        val rotX = remember { Animatable(0f) }
+        val rotY = remember { Animatable(0f) }
+
+        // Sanfter Auftritt der Karte
+        var mounted by remember { mutableStateOf(false) }
+        LaunchedEffectReveal { mounted = it >= 0 }
+        val appear by animateFloatAsState(
+            targetValue = if (mounted) 1f else 0.85f,
+            animationSpec = tween(260, easing = EaseOutCubic),
+            label = "poster_appear"
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.82f))
+                .pointerInput(Unit) { detectTapGestures(onTap = { onDismiss() }) },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.74f)
+                        .aspectRatio(2f / 3f)
+                        .graphicsLayer {
+                            rotationX = rotX.value
+                            rotationY = rotY.value
+                            scaleX = appear
+                            scaleY = appear
+                            cameraDistance = 14f * densityF
+                        }
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CinemaTheme.Smoke)
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDrag = { change, drag ->
+                                    change.consume()
+                                    scope.launch {
+                                        rotY.snapTo((rotY.value + drag.x * 0.12f).coerceIn(-maxTilt, maxTilt))
+                                    }
+                                    scope.launch {
+                                        rotX.snapTo((rotX.value - drag.y * 0.12f).coerceIn(-maxTilt, maxTilt))
+                                    }
+                                },
+                                onDragEnd = {
+                                    val spec = spring<Float>(
+                                        dampingRatio = 0.35f,
+                                        stiffness = Spring.StiffnessLow
+                                    )
+                                    scope.launch { rotX.animateTo(0f, spec) }
+                                    scope.launch { rotY.animateTo(0f, spec) }
+                                }
+                            )
+                        }
+                ) {
+                    AsyncImage(
+                        model = "https://image.tmdb.org/t/p/w500$posterPath",
+                        contentDescription = title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    // Glanzlicht + holografischer Schimmer, wandert mit der Neigung
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .drawWithContent {
+                                drawContent()
+                                val nx = rotY.value / maxTilt   // -1..1
+                                val ny = rotX.value / maxTilt
+                                val gx = (0.5f + nx * 0.5f) * size.width
+                                val gy = (0.5f - ny * 0.5f) * size.height
+
+                                // weiches Specular-Highlight
+                                drawRect(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            Color.White.copy(alpha = 0.50f),
+                                            Color.White.copy(alpha = 0.0f)
+                                        ),
+                                        center = Offset(gx, gy),
+                                        radius = size.width * 0.95f
+                                    )
+                                )
+                                // diagonaler Gold-Schimmer (Holo)
+                                drawRect(
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            CinemaTheme.GoldBright.copy(alpha = 0.20f),
+                                            Color.Transparent
+                                        ),
+                                        start = Offset(gx - size.width, gy - size.height),
+                                        end = Offset(gx + size.width, gy + size.height)
+                                    )
+                                )
+                            }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "BEWEGEN ZUM KIPPEN · TIPPEN ZUM SCHLIESSEN",
+                    fontFamily = SpecMono,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.5.sp,
+                    color = CinemaTheme.ParchmentDim
+                )
+            }
+        }
+    }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -329,12 +489,16 @@ private fun SprocketStrip() {
 }
 
 @Composable
-private fun PosterFrame(posterPath: String?, title: String) {
+private fun PosterFrame(posterPath: String?, title: String, onClick: (() -> Unit)? = null) {
     Box(
         modifier = Modifier
             .size(96.dp, 144.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(CinemaTheme.Smoke)
+            .then(
+                if (posterPath != null && onClick != null)
+                    Modifier.clickable { onClick() } else Modifier
+            )
     ) {
         if (posterPath != null) {
             AsyncImage(
@@ -357,6 +521,26 @@ private fun PosterFrame(posterPath: String?, title: String) {
         } else {
             Box(Modifier.size(96.dp, 144.dp), contentAlignment = Alignment.Center) {
                 Icon(Icons.Default.Info, contentDescription = null, tint = CinemaTheme.ParchmentDim)
+            }
+        }
+
+        // Affordanz: kleines "Vergrößern"-Badge, wenn antippbar
+        if (posterPath != null && onClick != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(6.dp)
+                    .size(22.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(CinemaTheme.Ink.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.OpenInFull,
+                    contentDescription = "Poster vergrößern",
+                    tint = CinemaTheme.GoldBright,
+                    modifier = Modifier.size(12.dp)
+                )
             }
         }
     }
