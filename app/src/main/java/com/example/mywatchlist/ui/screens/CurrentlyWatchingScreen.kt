@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.ui.viewmodel.*
 
@@ -47,7 +49,7 @@ fun CurrentlyWatchingScreen(
         if (currentlyWatchingList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "Deine Liste ist noch leer.\nSuche nach Titeln, um sie hinzuzufügen!",
+                    text = stringResource(R.string.empty_watching),
                     color = AppTheme.TextSecondary,
                     textAlign = TextAlign.Center
                 )
@@ -60,7 +62,7 @@ fun CurrentlyWatchingScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
             ) {
-                item { ScreenHeader(title = "Currently Watching") }
+                item { ScreenHeader(title = stringResource(R.string.list_currently_watching)) }
 
                 items(items = currentlyWatchingList, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
                     UniversalMediaCard(
@@ -132,12 +134,12 @@ private fun FinishedDatePickerDialog(
                     }
                 }
             ) {
-                Text("Bestätigen", color = AppTheme.YellowAccent)
+                Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Abbrechen", color = AppTheme.TextSecondary)
+                Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
             }
         },
         colors = DatePickerDefaults.colors(

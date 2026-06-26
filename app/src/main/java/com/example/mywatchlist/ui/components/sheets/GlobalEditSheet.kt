@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.components.sheets
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.ui.viewmodel.*
 
@@ -53,7 +55,7 @@ fun GlobalEditSheet(
     var notes by remember { mutableStateOf(movie.notes ?: "") }
 
     // Kategorie: vorhandenen Wert vorbelegen
-    val seriesCategories = listOf("Realserie", "Animated", "Anime")
+    val seriesCategories = listOf("Live-Action", "Animated", "Anime")
     var selectedCategory by remember { mutableStateOf(movie.favoriteCategory) }
 
     val showSeasonPicker = isTv && selectedLists.any {
@@ -134,7 +136,7 @@ fun GlobalEditSheet(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = if (isTv) "SERIES" else "FILM",
+                        text = if (isTv) stringResource(R.string.tag_series) else stringResource(R.string.tag_film),
                         fontFamily = AppTheme.Mono,
                         fontSize = 11.sp,
                         letterSpacing = 1.5.sp,
@@ -147,7 +149,7 @@ fun GlobalEditSheet(
             SheetDivider()
 
             // ── LISTEN-ZUWEISUNG ─────────────────────────────
-            SheetSectionLabel("Listen")
+            SheetSectionLabel(stringResource(R.string.sheet_lists))
             relevantListTypes.forEach { listType ->
                 val isChecked = selectedLists.contains(listType)
                 Row(
@@ -178,7 +180,7 @@ fun GlobalEditSheet(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = listType.displayName,
+                        text = stringResource(listType.labelRes),
                         fontSize = 15.sp,
                         color = AppTheme.TextPrimary
                     )
@@ -188,7 +190,7 @@ fun GlobalEditSheet(
             // ── KATEGORIE (TV + FAVORITE_SERIES) ────────────
             if (showCategoryPicker) {
                 SheetDivider()
-                SheetSectionLabel("Kategorie")
+                SheetSectionLabel(stringResource(R.string.sheet_category))
                 seriesCategories.forEach { category ->
                     val isChecked = selectedCategory == category
                     Row(
@@ -216,9 +218,9 @@ fun GlobalEditSheet(
                                 fontWeight = FontWeight.Medium
                             )
                             val desc = when (category) {
-                                "Realserie" -> "Live-Action Serien"
-                                "Animated"  -> "Westliche Animationsserien"
-                                "Anime"     -> "Japanische Animationsserien"
+                                "Live-Action" -> "Live-action series"
+                                "Animated"  -> "Western animated series"
+                                "Anime"     -> "Japanese animated series"
                                 else        -> ""
                             }
                             if (desc.isNotBlank()) {
@@ -232,7 +234,7 @@ fun GlobalEditSheet(
             // ── STAFFELPICKER ────────────────────────────────
             if (showSeasonPicker) {
                 SheetDivider()
-                SheetSectionLabel("Staffel")
+                SheetSectionLabel(stringResource(R.string.sheet_season))
                 SeasonPicker(
                     seasonNumber = seasonNumber,
                     onSeasonChange = { seasonNumber = it },
@@ -243,7 +245,7 @@ fun GlobalEditSheet(
             // ── DATUM (nur bei Recently Watched) ────────────
             if (isRecentlyWatched) {
                 SheetDivider()
-                SheetSectionLabel(if (movie.mediaType == "tv") "Beendet am" else "Geschaut am")
+                SheetSectionLabel(if (movie.mediaType == "tv") stringResource(R.string.label_finished_on) else stringResource(R.string.label_watched_on))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -253,14 +255,14 @@ fun GlobalEditSheet(
                 ) {
                     Text(
                         text = if (selectedDateDisplay.isNotBlank()) selectedDateDisplay
-                        else "Kein Datum gesetzt",
+                        else stringResource(R.string.date_none_set),
                         fontSize = 16.sp,
                         color = if (selectedDateDisplay.isNotBlank()) AppTheme.TextPrimary
                         else AppTheme.TextSecondary,
                         fontWeight = FontWeight.Medium
                     )
                     TextButton(onClick = { showDatePicker = true }) {
-                        Text("Ändern", color = AppTheme.YellowAccent, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.action_change), color = AppTheme.YellowAccent, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -268,7 +270,7 @@ fun GlobalEditSheet(
             SheetDivider()
 
             // ── NOTIZEN ──────────────────────────────────────
-            SheetSectionLabel("Notizen")
+            SheetSectionLabel(stringResource(R.string.sheet_notes))
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
@@ -276,7 +278,7 @@ fun GlobalEditSheet(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
                 placeholder = {
-                    Text("Notiz hinzufügen...", color = AppTheme.TextTertiary, fontSize = 14.sp)
+                    Text(stringResource(R.string.notes_placeholder), color = AppTheme.TextTertiary, fontSize = 14.sp)
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AppTheme.YellowAccent,
@@ -329,7 +331,7 @@ fun GlobalEditSheet(
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Speichern", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.action_save), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
@@ -354,11 +356,11 @@ fun GlobalEditSheet(
                         }
                         showDatePicker = false
                     }
-                ) { Text("Bestätigen", color = AppTheme.YellowAccent) }
+                ) { Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent) }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Abbrechen", color = AppTheme.TextSecondary)
+                    Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
                 }
             },
             colors = DatePickerDefaults.colors(containerColor = AppTheme.DarkSurface)

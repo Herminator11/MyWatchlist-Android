@@ -27,13 +27,13 @@ import com.example.mywatchlist.utils.buildExportContent
 import com.example.mywatchlist.utils.currentExportTimestamp
 import com.example.mywatchlist.utils.ExportEntry
 
-enum class WatchListType(val displayName: String) {
-    WANT_TO_WATCH("Want to Watch"),
-    CURRENTLY_WATCHING("Currently Watching"),
-    RECENTLY_WATCHED_TV("Recently Watched"),
-    RECENTLY_WATCHED_MOVIES("Recently Watched Movies"),
-    FAVORITE_MOVIES("Lieblingsfilme"),
-    FAVORITE_SERIES("Lieblingsserien")
+enum class WatchListType(@androidx.annotation.StringRes val labelRes: Int) {
+    WANT_TO_WATCH(com.example.mywatchlist.R.string.list_want_to_watch),
+    CURRENTLY_WATCHING(com.example.mywatchlist.R.string.list_currently_watching),
+    RECENTLY_WATCHED_TV(com.example.mywatchlist.R.string.list_recently_watched),
+    RECENTLY_WATCHED_MOVIES(com.example.mywatchlist.R.string.list_recently_watched_movies),
+    FAVORITE_MOVIES(com.example.mywatchlist.R.string.list_favorite_movies),
+    FAVORITE_SERIES(com.example.mywatchlist.R.string.list_favorite_series)
 }
 
 class LibraryViewModel(
@@ -111,7 +111,7 @@ class LibraryViewModel(
 
     // ── Hilfsfunktionen ───────────────────────────────────────
     private fun launchIO(
-        errorMsg: String = "Ein Fehler ist aufgetreten",
+        errorMsg: String = "Something went wrong",
         block: suspend () -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -154,7 +154,7 @@ class LibraryViewModel(
         favoriteCategory: String? = null,
         notes: String? = null
     ) {
-        launchIO("Eintrag konnte nicht hinzugefügt werden") {
+        launchIO("Could not add entry") {
                 val isTvList = listType == WatchListType.CURRENTLY_WATCHING ||
                         listType == WatchListType.RECENTLY_WATCHED_TV ||
                         listType == WatchListType.WANT_TO_WATCH
@@ -178,7 +178,7 @@ class LibraryViewModel(
     // ── Als fertig markieren (mit DatePicker-Datum) ───────────
 
     fun markAsFinished(movie: MovieEntity, finishedDate: String) {
-        launchIO("Eintrag konnte nicht als gesehen markiert werden") {
+        launchIO("Could not mark entry as watched") {
                 val newListType = if (movie.mediaType == "tv")
                     WatchListType.RECENTLY_WATCHED_TV.name
                 else
@@ -205,7 +205,7 @@ class LibraryViewModel(
     // notify=false unterdrückt die Undo-Snackbar – z. B. wenn das
     // Löschen selbst schon ein Undo ist (Such-Quick-Add rückgängig).
     fun deleteSpecificEntry(movie: MovieEntity, notify: Boolean = true) {
-        launchIO("Eintrag konnte nicht gelöscht werden") {
+        launchIO("Could not delete entry") {
                 movieDao.removeSeasonFromList(
                     movieId = movie.id,
                     listType = movie.listType,
@@ -221,7 +221,7 @@ class LibraryViewModel(
     // Staffel, finishedDate und sortOrder.
 
     fun undoDelete(movie: MovieEntity) {
-        launchIO("Wiederherstellen fehlgeschlagen") {
+        launchIO("Could not restore") {
                 movieDao.insertOrUpdateMovie(movie)
         }
     }
@@ -239,7 +239,7 @@ class LibraryViewModel(
         isFavorite: Boolean,
         favoriteCategory: String? = null
     ) {
-        launchIO("Änderungen konnten nicht gespeichert werden") {
+        launchIO("Could not save changes") {
                 val newEntries = mutableListOf<MovieEntity>()
                 var removeFavListType: String? = null   // ← NEU
 
@@ -294,13 +294,13 @@ class LibraryViewModel(
     // ── Favoriten-Kategorie updaten ───────────────────────────
 
     fun updateFavoriteCategory(movie: MovieEntity, newCategory: String) {
-        launchIO("Kategorie konnte nicht aktualisiert werden") {
+        launchIO("Could not update category") {
                 movieDao.insertOrUpdateMovie(movie.copy(favoriteCategory = newCategory))
         }
     }
 
     fun removeFromFavorites(movie: MovieEntity) {
-        launchIO("Favorit konnte nicht entfernt werden") {
+        launchIO("Could not remove favorite") {
                 val favoriteListType = if (movie.mediaType == "tv")
                     WatchListType.FAVORITE_SERIES.name
                 else
@@ -313,7 +313,7 @@ class LibraryViewModel(
     // ── Notizen updaten ───────────────────────────────────────
 
     fun updateNotes(movie: MovieEntity, notes: String?) {
-        launchIO("Notiz konnte nicht gespeichert werden") {
+        launchIO("Could not save note") {
                 movieDao.updateNotes(movie.id, movie.listType, movie.seasonNumber, notes)
         }
     }
@@ -321,7 +321,7 @@ class LibraryViewModel(
     // ── Drag & Drop: nur sortOrder updaten, nicht gesamte Zeile ersetzen ──
 
     fun reorderFavorites(reorderedList: List<MovieEntity>) {
-        launchIO("Reihenfolge konnte nicht gespeichert werden") {
+        launchIO("Could not save order") {
             reorderedList.forEachIndexed { index, movie ->
                     movieDao.updateSortOrder(movie.id, movie.listType, movie.seasonNumber, index)
             }
@@ -331,7 +331,7 @@ class LibraryViewModel(
     // ── Want to Watch → Currently Watching ───────────────────
 
     fun moveToCurrentlyWatching(movie: MovieEntity, seasonNumber: String) {
-        launchIO("Eintrag konnte nicht verschoben werden") {
+        launchIO("Could not move entry") {
                 movieDao.editCardTransaction(
                     oldId = movie.id,
                     oldListType = WatchListType.WANT_TO_WATCH.name,
@@ -350,7 +350,7 @@ class LibraryViewModel(
     // ── Want to Watch → Recently Watched Movies ───────────────
 
     fun moveToRecentlyWatched(movie: MovieEntity, watchedDate: String) {
-        launchIO("Eintrag konnte nicht verschoben werden") {
+        launchIO("Could not move entry") {
                 movieDao.editCardTransaction(
                     oldId = movie.id,
                     oldListType = WatchListType.WANT_TO_WATCH.name,

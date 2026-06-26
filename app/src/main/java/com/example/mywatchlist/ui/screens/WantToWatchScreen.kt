@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.ui.viewmodel.*
 
@@ -46,7 +48,7 @@ fun WantToWatchScreen(
         label = "detail_blur"
     )
 
-    val tabs = listOf("Serien", "Filme")
+    val tabs = listOf(stringResource(R.string.tab_series), stringResource(R.string.tab_movies))
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -94,7 +96,7 @@ fun WantToWatchScreen(
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "Noch nichts auf der Merkliste.",
+                        text = stringResource(R.string.empty_watchlist),
                         color = AppTheme.TextSecondary
                     )
                 }
@@ -106,7 +108,7 @@ fun WantToWatchScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
                 ) {
-                    item { ScreenHeader(title = "Want to watch") }
+                    item { ScreenHeader(title = stringResource(R.string.list_want_to_watch)) }
                     items(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
                         UniversalMediaCard(
                             item = entity,
@@ -208,7 +210,7 @@ private fun MoveToWatchingSheet(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Serie in \"Currently Watching\" verschieben?",
+                text = stringResource(R.string.move_to_watching_question),
                 fontSize = 13.sp,
                 color = AppTheme.TextSecondary
             )
@@ -224,14 +226,14 @@ private fun MoveToWatchingSheet(
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Anfangen zu schauen", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.move_start_watching), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.height(10.dp))
             TextButton(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Abbrechen", color = AppTheme.TextSecondary, fontSize = 15.sp)
+                Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary, fontSize = 15.sp)
             }
         }
     }
@@ -282,7 +284,7 @@ private fun MoveToWatchedSheet(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Als gesehen markieren",
+                text = stringResource(R.string.move_mark_watched),
                 fontSize = 13.sp,
                 color = AppTheme.TextSecondary
             )
@@ -292,7 +294,7 @@ private fun MoveToWatchedSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "GESCHAUT AM",
+                text = stringResource(R.string.label_watched_on_caps),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = AppTheme.TextSecondary,
@@ -307,7 +309,7 @@ private fun MoveToWatchedSheet(
             ) {
                 Text(
                     text = if (selectedDateDisplay.isNotBlank()) selectedDateDisplay
-                    else "Datum auswählen",
+                    else stringResource(R.string.date_pick),
                     fontSize = 16.sp,
                     color = if (selectedDateDisplay.isNotBlank()) AppTheme.TextPrimary
                     else AppTheme.TextSecondary,
@@ -315,7 +317,7 @@ private fun MoveToWatchedSheet(
                 )
                 TextButton(onClick = { showDatePickerDialog = true }) {
                     Text(
-                        text = if (selectedDateDisplay.isBlank()) "Auswählen" else "Ändern",
+                        text = if (selectedDateDisplay.isBlank()) stringResource(R.string.action_select) else stringResource(R.string.action_change),
                         color = AppTheme.YellowAccent,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -338,7 +340,7 @@ private fun MoveToWatchedSheet(
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Als gesehen markieren", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.move_mark_watched), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
@@ -362,11 +364,11 @@ private fun MoveToWatchedSheet(
                         }
                         showDatePickerDialog = false
                     }
-                ) { Text("Bestätigen", color = AppTheme.YellowAccent) }
+                ) { Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent) }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePickerDialog = false }) {
-                    Text("Abbrechen", color = AppTheme.TextSecondary)
+                    Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
                 }
             },
             colors = DatePickerDefaults.colors(containerColor = AppTheme.DarkSurface)

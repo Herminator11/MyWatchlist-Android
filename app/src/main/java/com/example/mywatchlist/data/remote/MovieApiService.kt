@@ -67,10 +67,10 @@ data class TmdbMovie(
     val overview: String?
 ) {
     val displayTitle: String
-        get() = title ?: name ?: "Unbekannter Titel"
+        get() = title ?: name ?: "Unknown title"
 
     val displayDate: String
-        get() = releaseDate ?: firstAirDate ?: "Kein Datum"
+        get() = releaseDate ?: firstAirDate ?: ""
 
     val displayMediaType: String
         get() = when (mediaType) {
@@ -90,21 +90,21 @@ interface MovieApiService {
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "de-DE"
+        @Query("language") language: String = "en-US"
     ): MovieSearchResponse
 
     @GET("tv/{id}")
     suspend fun getTvDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "de-DE"
+        @Query("language") language: String = "en-US"
     ): TvDetails
 
     @GET("movie/{id}")
     suspend fun getMovieDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "de-DE"
+        @Query("language") language: String = "en-US"
     ): MovieDetails
 }
 

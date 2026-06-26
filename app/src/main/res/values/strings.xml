@@ -1,3 +1,118 @@
 <resources>
     <string name="app_name">MyWatchlist</string>
+    <string name="app_wordmark">Watchlist</string>
+    <string name="header_subtitle">MY WATCHLIST</string>
+
+    <!-- Generic actions -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_save">Save</string>
+    <string name="action_add">Add</string>
+    <string name="action_change">Change</string>
+    <string name="action_select">Select</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
+    <string name="action_edit">EDIT</string>
+    <string name="action_add_to_list">ADD TO LIST</string>
+    <string name="cd_reorder">Change order</string>
+    <string name="cd_already_saved">Already saved</string>
+
+    <!-- Lists -->
+    <string name="list_want_to_watch">Want to Watch</string>
+    <string name="list_currently_watching">Currently Watching</string>
+    <string name="list_recently_watched">Recently Watched</string>
+    <string name="list_recently_watched_movies">Recently Watched Movies</string>
+    <string name="list_favorite_movies">Favorite Movies</string>
+    <string name="list_favorite_series">Favorite Series</string>
+
+    <!-- Tabs / headers -->
+    <string name="tab_series">Series</string>
+    <string name="tab_movies">Movies</string>
+    <string name="tab_favorite_series">Favorite Series</string>
+    <string name="tab_favorite_movies">Favorite Movies</string>
+    <string name="header_watchlist">Watchlist</string>
+    <string name="header_watching">Watching</string>
+    <string name="header_history">History</string>
+    <string name="header_favorites">Favorites</string>
+    <string name="nav_search">Search</string>
+
+    <!-- Empty states -->
+    <string name="empty_watchlist">Nothing on your watchlist yet.</string>
+    <string name="empty_watching">Your list is empty.\nSearch for titles to add them!</string>
+    <string name="empty_history">This list is empty.</string>
+    <string name="empty_favorites_category">No titles in this category.</string>
+
+    <!-- Search -->
+    <string name="search_title">Search</string>
+    <string name="search_hint">Movies, series, anime…</string>
+    <string name="search_results_count">%1$d results · swipe right to save</string>
+    <string name="search_loading">Searching…</string>
+    <string name="search_error">Something went wrong.</string>
+    <string name="search_no_results_for">No results for</string>
+    <string name="search_discover">Discover</string>
+    <string name="search_discover_1">🎬  Movies &amp; series from around the world</string>
+    <string name="search_discover_2">📺  Anime and animated series</string>
+    <string name="search_discover_3">⭐  Add to lists &amp; manage</string>
+    <string name="snackbar_added_to_watchlist">“%1$s” → Want to Watch</string>
+    <string name="snackbar_deleted">“%1$s” deleted</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_navigation">Navigation</string>
+    <string name="settings_autohide_navbar">Hide nav bar while scrolling</string>
+    <string name="settings_section_data">Data</string>
+    <string name="settings_export_history">Export history</string>
+    <string name="settings_export_empty">No entries yet</string>
+    <string name="settings_export_desc">Share Recently Watched as a .txt file</string>
+    <string name="settings_version">MyWatchlist · Version %1$s</string>
+    <string name="export_subject">MyWatchlist History Export</string>
+    <string name="export_chooser">Share history</string>
+
+    <!-- Move / date sheets -->
+    <string name="move_to_watching_question">Move this series to “Currently Watching”?</string>
+    <string name="move_start_watching">Start watching</string>
+    <string name="move_mark_watched">Mark as watched</string>
+    <string name="label_watched_on_caps">WATCHED ON</string>
+    <string name="date_pick">Pick a date</string>
+
+    <!-- Edit / Add sheets -->
+    <string name="sheet_lists">Lists</string>
+    <string name="sheet_add_to">Add to</string>
+    <string name="sheet_category">Category</string>
+    <string name="sheet_season">Season</string>
+    <string name="sheet_notes">Notes</string>
+    <string name="notes_placeholder">Add a note…</string>
+    <string name="label_finished_on">Finished on</string>
+    <string name="label_watched_on">Watched on</string>
+    <string name="date_none_set">No date set</string>
+    <string name="media_tv_series">TV Series</string>
+
+    <!-- Categories (display labels) -->
+    <string name="cat_all">All</string>
+    <string name="cat_live_action">Live-Action</string>
+    <string name="cat_animated">Animated</string>
+    <string name="cat_anime">Anime</string>
+    <string name="cat_live_action_desc">Live-action series</string>
+    <string name="cat_animated_desc">Western animated series</string>
+    <string name="cat_anime_desc">Japanese animated series</string>
+
+    <!-- Detail popup -->
+    <string name="tag_series">SERIES</string>
+    <string name="tag_feature">FEATURE</string>
+    <string name="tag_film">FILM</string>
+    <string name="detail_filed_under">Filed under</string>
+    <string name="detail_not_on_list">— not on any list —</string>
+    <string name="detail_finished_watching">Finished watching</string>
+    <string name="detail_watched_on">Watched on</string>
+    <string name="spec_seasons">Seasons</string>
+    <string name="spec_episodes">Episodes</string>
+    <string name="spec_runtime">Runtime</string>
+    <string name="spec_runtime_value">%1$d min</string>
+    <string name="spec_released">Released</string>
+    <string name="poster_hint">DRAG TO TILT · TAP TO CLOSE</string>
+    <string name="poster_expand">Enlarge poster</string>
+    <string name="season_hint">e.g. Season 2 or Season 4 Part 2</string>
 </resources>

@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.components.cards
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -148,7 +150,7 @@ fun UniversalMediaCard(
                     Text("\u00B7", color = AppTheme.TextTertiary, fontSize = 12.sp)
                     Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.DarkSurface2) {
                         Text(
-                            text = if (item.mediaType == "tv") "SERIES" else "FILM",
+                            text = if (item.mediaType == "tv") stringResource(R.string.tag_series) else stringResource(R.string.tag_film),
                             fontFamily = AppTheme.Mono,
                             fontSize = 9.sp,
                             letterSpacing = 1.sp,
@@ -208,7 +210,7 @@ fun UniversalMediaCard(
                             imageVector = if (item.mediaType == "tv")
                                 Icons.Default.PlayArrow else Icons.Default.Check,
                             contentDescription = if (item.mediaType == "tv")
-                                "Anfangen" else "Gesehen",
+                                stringResource(R.string.move_start_watching) else stringResource(R.string.move_mark_watched),
                             tint = Color.Black,
                             modifier = Modifier.size(20.dp)
                         )

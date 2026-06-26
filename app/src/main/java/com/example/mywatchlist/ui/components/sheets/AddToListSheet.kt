@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.components.sheets
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.remote.*
 import com.example.mywatchlist.ui.viewmodel.*
 
@@ -46,7 +48,7 @@ fun AddToListSheet(
 
     // Kategorie (nur bei TV + FAVORITE_SERIES)
     var selectedCategory by remember { mutableStateOf<String?>(null) }
-    val seriesCategories = listOf("Realserie", "Animated", "Anime")
+    val seriesCategories = listOf("Live-Action", "Animated", "Anime")
 
     // Sichtbarkeits-Flags – reagieren reaktiv auf Checkbox-Änderungen
     val showSeasonPicker = isTv && selectedLists.any {
@@ -107,7 +109,7 @@ fun AddToListSheet(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = if (isTv) "TV Series" else "Movie",
+                        text = if (isTv) stringResource(R.string.media_tv_series) else "Movie",
                         fontSize = 13.sp,
                         color = AppTheme.TextSecondary
                     )
@@ -117,7 +119,7 @@ fun AddToListSheet(
             SheetDivider()
 
             // ── LISTEN-ZUWEISUNG (Checkboxen) ───────────────
-            SheetSectionLabel("Hinzufügen zu")
+            SheetSectionLabel(stringResource(R.string.sheet_add_to))
             val relevantLists = WatchListType.values().filter { listType ->
                 if (isTv) {
                     listType != WatchListType.RECENTLY_WATCHED_MOVIES &&
@@ -159,7 +161,7 @@ fun AddToListSheet(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = listType.displayName,
+                        text = stringResource(listType.labelRes),
                         fontSize = 15.sp,
                         color = AppTheme.TextPrimary,
                         fontWeight = FontWeight.Medium
@@ -170,7 +172,7 @@ fun AddToListSheet(
             // ── KATEGORIE (TV + FAVORITE_SERIES) ────────────
             if (showCategoryPicker) {
                 SheetDivider()
-                SheetSectionLabel("Kategorie")
+                SheetSectionLabel(stringResource(R.string.sheet_category))
                 seriesCategories.forEach { category ->
                     val isChecked = selectedCategory == category
                     Row(
@@ -198,9 +200,9 @@ fun AddToListSheet(
                                 fontWeight = FontWeight.Medium
                             )
                             val desc = when (category) {
-                                "Realserie" -> "Live-Action Serien"
-                                "Animated"  -> "Westliche Animationsserien"
-                                "Anime"     -> "Japanische Animationsserien"
+                                "Live-Action" -> "Live-action series"
+                                "Animated"  -> "Western animated series"
+                                "Anime"     -> "Japanese animated series"
                                 else        -> ""
                             }
                             if (desc.isNotBlank()) {
@@ -214,7 +216,7 @@ fun AddToListSheet(
             // ── STAFFEL (TV + Currently/Recently Watched TV) ─
             if (showSeasonPicker) {
                 SheetDivider()
-                SheetSectionLabel("Staffel")
+                SheetSectionLabel(stringResource(R.string.sheet_season))
                 SeasonPicker(
                     seasonNumber = seasonNumber,
                     onSeasonChange = { seasonNumber = it },
@@ -226,7 +228,7 @@ fun AddToListSheet(
             if (showDatePicker) {
                 SheetDivider()
                 val dateLabel = if (selectedLists.contains(WatchListType.RECENTLY_WATCHED_TV))
-                    "Beendet am" else "Geschaut am"
+                    stringResource(R.string.label_finished_on) else stringResource(R.string.label_watched_on)
                 SheetSectionLabel(dateLabel)
                 Row(
                     modifier = Modifier
@@ -237,7 +239,7 @@ fun AddToListSheet(
                 ) {
                     Text(
                         text = if (selectedDateDisplay.isNotBlank()) selectedDateDisplay
-                        else "Datum auswählen",
+                        else stringResource(R.string.date_pick),
                         fontSize = 16.sp,
                         color = if (selectedDateDisplay.isNotBlank()) AppTheme.TextPrimary
                         else AppTheme.TextSecondary,
@@ -245,7 +247,7 @@ fun AddToListSheet(
                     )
                     TextButton(onClick = { showDatePickerDialog = true }) {
                         Text(
-                            text = if (selectedDateDisplay.isBlank()) "Auswählen" else "Ändern",
+                            text = if (selectedDateDisplay.isBlank()) stringResource(R.string.action_select) else stringResource(R.string.action_change),
                             color = AppTheme.YellowAccent,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -290,7 +292,7 @@ fun AddToListSheet(
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Hinzufügen", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.action_add), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
@@ -315,11 +317,11 @@ fun AddToListSheet(
                         }
                         showDatePickerDialog = false
                     }
-                ) { Text("Bestätigen", color = AppTheme.YellowAccent) }
+                ) { Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent) }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePickerDialog = false }) {
-                    Text("Abbrechen", color = AppTheme.TextSecondary)
+                    Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
                 }
             },
             colors = DatePickerDefaults.colors(containerColor = AppTheme.DarkSurface)

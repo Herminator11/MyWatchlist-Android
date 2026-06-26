@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.ui.viewmodel.*
 
@@ -42,7 +44,7 @@ fun RecentlyWatchedScreen(
         label = "detail_blur"
     )
 
-    val tabs = listOf("Serien", "Filme")
+    val tabs = listOf(stringResource(R.string.tab_series), stringResource(R.string.tab_movies))
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -98,7 +100,7 @@ fun RecentlyWatchedScreen(
 
             if (grouped.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Diese Liste ist noch leer.", color = AppTheme.TextSecondary)
+                    Text(stringResource(R.string.empty_history), color = AppTheme.TextSecondary)
                 }
             } else {
                 LazyColumn(
@@ -108,7 +110,7 @@ fun RecentlyWatchedScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp),
                 ) {
-                    item { ScreenHeader(title = "Recently Watched") }
+                    item { ScreenHeader(title = stringResource(R.string.list_recently_watched)) }
 
                     grouped.forEach { (year, yearEntries) ->
                         item(key = "header_${page}_$year") {

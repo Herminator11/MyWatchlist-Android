@@ -1,4 +1,7 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import com.example.mywatchlist.R
 import com.example.mywatchlist.ui.viewmodel.*
 
 import androidx.compose.foundation.background
@@ -99,7 +102,7 @@ fun MovieTrackerTopBar(onProfileClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Watchlist",
+                    text = stringResource(R.string.app_wordmark),
                     fontFamily = AppTheme.Display,
                     fontSize = 23.sp,
                     fontWeight = FontWeight.Normal,
@@ -110,7 +113,7 @@ fun MovieTrackerTopBar(onProfileClick: () -> Unit) {
         actions = {
             Icon(
                 imageVector = Icons.Default.Settings,
-                contentDescription = "Einstellungen",
+                contentDescription = stringResource(R.string.settings_title),
                 modifier = Modifier
                     .padding(end = 16.dp)
                     .size(26.dp)
@@ -129,41 +132,41 @@ sealed class BottomNavItem(
     val route: String,
     val activeIcon: ImageVector,
     val inactiveIcon: ImageVector,
-    val label: String
+    @androidx.annotation.StringRes val labelRes: Int
 ) {
     object WantToWatch : BottomNavItem(
         route = "want_to_watch",
         activeIcon = Icons.Filled.Bookmark,
         inactiveIcon = Icons.Outlined.BookmarkBorder,
-        label = "Watchlist"
+        labelRes = R.string.header_watchlist
     )
 
     object CurrentlyWatching : BottomNavItem(
         route = "currently_watching",
         activeIcon = Icons.Filled.LiveTv,
         inactiveIcon = Icons.Outlined.LiveTv,
-        label = "Watching"
+        labelRes = R.string.header_watching
     )
 
     object RecentlyWatched : BottomNavItem(
         route = "recently_watched",
         activeIcon = Icons.Filled.History,
         inactiveIcon = Icons.Outlined.History,
-        label = "History"
+        labelRes = R.string.header_history
     )
 
     object Favorites : BottomNavItem(
         route = "favorites",
         activeIcon = Icons.Filled.Favorite,
         inactiveIcon = Icons.Outlined.FavoriteBorder,
-        label = "Favorites"
+        labelRes = R.string.header_favorites
     )
 
     object Search : BottomNavItem(
         route = "search",
         activeIcon = Icons.Filled.Search,
         inactiveIcon = Icons.Outlined.Search,
-        label = "Search"
+        labelRes = R.string.nav_search
     )
 }
 
@@ -211,14 +214,14 @@ fun MainScreenApp() {
                             putExtra(android.content.Intent.EXTRA_STREAM, uri)
                             putExtra(
                                 android.content.Intent.EXTRA_SUBJECT,
-                                "MyWatchlist History Export"
+                                context.getString(R.string.export_subject)
                             )
                             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
                         context.startActivity(
                             android.content.Intent.createChooser(
                                 shareIntent,
-                                "History teilen"
+                                context.getString(R.string.export_chooser)
                             )
                         )
                     }
@@ -238,13 +241,14 @@ private fun MainContent(onOpenSettings: () -> Unit) {
 
     // App-weite Undo-Snackbar fürs Löschen aus Listen
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     LaunchedEffect(libraryViewModel) {
         libraryViewModel.events.collect { event ->
             when (event) {
                 is LibraryViewModel.LibraryEvent.Deleted -> {
                     val result = snackbarHostState.showSnackbar(
-                        message = "„${event.movie.title}“ gelöscht",
-                        actionLabel = "Rückgängig",
+                        message = context.getString(R.string.snackbar_deleted, event.movie.title),
+                        actionLabel = context.getString(R.string.action_undo),
                         duration = SnackbarDuration.Short
                     )
                     if (result == SnackbarResult.ActionPerformed) {
@@ -446,12 +450,12 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(
                                     spacingBetweenTooltipAndAnchor = 24.dp
                                 ),
-                                tooltip = { PlainTooltip { Text(item.label) } },
+                                tooltip = { PlainTooltip { Text(stringResource(item.labelRes)) } },
                                 state = tooltipState
                             ) {
                                 Icon(
                                     imageVector = if (isSelected) item.activeIcon else item.inactiveIcon,
-                                    contentDescription = item.label,
+                                    contentDescription = stringResource(item.labelRes),
                                     tint = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
                                     modifier = Modifier
                                         .size(24.dp)

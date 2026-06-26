@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,14 +42,14 @@ fun SettingsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Zurück",
+                            contentDescription = stringResource(R.string.action_back),
                             tint = AppTheme.TextPrimary
                         )
                     }
                 },
                 title = {
                     Text(
-                        text = "Einstellungen",
+                        text = stringResource(R.string.settings_title),
                         fontFamily = AppTheme.Display,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Normal,
@@ -68,13 +70,13 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             // ── SEKTION: DARSTELLUNG ─────────────────────────
-            SettingsSectionHeader("Darstellung")
+            SettingsSectionHeader(stringResource(R.string.settings_section_appearance))
 
             SettingsCard {
                 SettingsRow(
                     icon = Icons.Filled.ViewDay,
-                    title = "Navigation",
-                    subtitle = "Nav-Bar beim Scrollen ausblenden",
+                    title = stringResource(R.string.settings_navigation),
+                    subtitle = stringResource(R.string.settings_autohide_navbar),
                     trailing = {
                         Switch(
                             checked = autoHideNavBar,
@@ -93,14 +95,14 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // ── SEKTION: DATEN ────────────────────────────────
-            SettingsSectionHeader("Daten")
+            SettingsSectionHeader(stringResource(R.string.settings_section_data))
 
             SettingsCard {
                 SettingsRow(
                     icon = Icons.Filled.FileDownload,
-                    title = "History exportieren",
-                    subtitle = if (historyIsEmpty) "Noch keine Einträge vorhanden"
-                    else "Recently Watched als .txt-Datei teilen",
+                    title = stringResource(R.string.settings_export_history),
+                    subtitle = if (historyIsEmpty) stringResource(R.string.settings_export_empty)
+                    else stringResource(R.string.settings_export_desc),
                     enabled = !historyIsEmpty,
                     onClick = onExportHistory,
                     trailing = {
@@ -119,7 +121,7 @@ fun SettingsScreen(
 
             // ── VERSION ───────────────────────────────────────
             Text(
-                text = "MyWatchlist · Version 1.0",
+                text = stringResource(R.string.settings_version, com.example.mywatchlist.BuildConfig.VERSION_NAME),
                 fontSize = 12.sp,
                 color = AppTheme.TextTertiary,
                 modifier = Modifier.align(Alignment.CenterHorizontally)

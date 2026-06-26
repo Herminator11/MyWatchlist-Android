@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.ui.viewmodel.*
 
@@ -46,11 +48,11 @@ fun FavoritesScreen(
         label = "detail_blur"
     )
 
-    val tabs = listOf("Lieblingsserien", "Lieblingsfilme")
+    val tabs = listOf(stringResource(R.string.tab_favorite_series), stringResource(R.string.tab_favorite_movies))
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
-    val categories = listOf("Alle", "Realserie", "Animated", "Anime")
+    val categories = listOf("All", "Live-Action", "Animated", "Anime")
     var selectedCategory by remember { mutableStateOf(categories[0]) }
 
     Column(
@@ -133,7 +135,7 @@ fun FavoritesScreen(
             val rawList = if (page == 0) {
                 allSavedMovies.filter {
                     it.listType == listType &&
-                            (selectedCategory == "Alle" || it.favoriteCategory == selectedCategory)
+                            (selectedCategory == "All" || it.favoriteCategory == selectedCategory)
                 }
             } else {
                 allSavedMovies.filter { it.listType == listType }
@@ -158,7 +160,7 @@ fun FavoritesScreen(
 
             if (displayList.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Keine Titel in dieser Kategorie.", color = AppTheme.TextSecondary)
+                    Text(stringResource(R.string.empty_favorites_category), color = AppTheme.TextSecondary)
                 }
             } else {
                 LazyColumn(
@@ -200,7 +202,7 @@ fun FavoritesScreen(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Menu,
-                                                contentDescription = "Reihenfolge ändern",
+                                                contentDescription = stringResource(R.string.cd_reorder),
                                                 tint = AppTheme.TextSecondary,
                                                 modifier = Modifier.size(20.dp)
                                             )

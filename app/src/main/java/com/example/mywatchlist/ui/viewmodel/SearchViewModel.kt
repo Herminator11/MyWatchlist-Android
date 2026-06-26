@@ -66,7 +66,7 @@ class SearchViewModel : ViewModel() {
 
                 val filtered = response.results.filter {
                     it.mediaType != "person" &&
-                            (it.posterPath != null || it.displayTitle != "Unbekannter Titel")
+                            (it.posterPath != null || it.displayTitle != "Unknown title")
                 }
                 searchResults = if (reset) {
                     filtered

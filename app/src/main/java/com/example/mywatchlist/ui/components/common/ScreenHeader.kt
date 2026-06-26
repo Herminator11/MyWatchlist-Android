@@ -26,8 +26,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.mywatchlist.R
 import androidx.compose.ui.unit.sp
 import com.example.mywatchlist.ui.theme.AppTheme
 
@@ -94,7 +96,7 @@ fun ScreenHeader(title: String) {
             Spacer(modifier = Modifier.height(2.dp))
             // dezente Mono-Subline für den "Datenblatt"-Charakter
             Text(
-                text = "·".repeat(3) + "  MY WATCHLIST",
+                text = "·".repeat(3) + "  " + stringResource(R.string.header_subtitle),
                 fontFamily = AppTheme.Mono,
                 fontSize = 9.sp,
                 letterSpacing = 2.sp,

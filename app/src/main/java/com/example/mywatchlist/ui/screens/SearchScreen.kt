@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.data.remote.*
 import com.example.mywatchlist.ui.viewmodel.*
@@ -29,6 +31,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +59,7 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
     var selectedMovieForAdd by remember { mutableStateOf<TmdbMovie?>(null) }
     var movieForDetail by remember { mutableStateOf<TmdbMovie?>(null) }
 
@@ -76,8 +80,8 @@ fun SearchScreen(
             libraryViewModel.addNewCard(movie, WatchListType.WANT_TO_WATCH)
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = "„${movie.displayTitle}“ → Want to Watch",
-                    actionLabel = "Rückgängig",
+                    message = context.getString(R.string.snackbar_added_to_watchlist, movie.displayTitle),
+                    actionLabel = context.getString(R.string.action_undo),
                     duration = SnackbarDuration.Short
                 )
                 if (result == SnackbarResult.ActionPerformed) {
@@ -229,7 +233,7 @@ private fun SearchHeader() {
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = "Suche",
+            text = stringResource(R.string.search_title),
             fontFamily = AppTheme.Display,
             fontSize = 30.sp,
             fontWeight = FontWeight.Normal,
@@ -255,14 +259,14 @@ private fun SearchBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .focusRequester(focusRequester),
-        placeholder = { Text("Filme, Serien, Anime...", color = AppTheme.TextSecondary, fontSize = 15.sp) },
+        placeholder = { Text(stringResource(R.string.search_hint), color = AppTheme.TextSecondary, fontSize = 15.sp) },
         leadingIcon = {
             Icon(Icons.Default.Search, contentDescription = null, tint = AppTheme.TextSecondary, modifier = Modifier.size(20.dp))
         },
         trailingIcon = {
             AnimatedVisibility(visible = query.isNotEmpty(), enter = fadeIn() + scaleIn(), exit = fadeOut() + scaleOut()) {
                 IconButton(onClick = onClear) {
-                    Icon(Icons.Default.Close, contentDescription = "Löschen", tint = AppTheme.TextSecondary, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_clear), tint = AppTheme.TextSecondary, modifier = Modifier.size(18.dp))
                 }
             }
         },
@@ -317,7 +321,7 @@ private fun ResultsList(
     ) {
         item {
             Text(
-                text = "${results.size} Ergebnisse · zum Merken nach rechts wischen",
+                text = stringResource(R.string.search_results_count, results.size),
                 color = AppTheme.TextSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
@@ -483,7 +487,7 @@ private fun SearchResultCard(
             ) {
                 Icon(
                     imageVector = if (alreadySaved) Icons.Default.Check else Icons.Default.Add,
-                    contentDescription = if (alreadySaved) "Bereits gespeichert" else "Hinzufügen",
+                    contentDescription = if (alreadySaved) stringResource(R.string.cd_already_saved) else stringResource(R.string.action_add),
                     tint = if (alreadySaved) AppTheme.TextSecondary else Color.Black,
                     modifier = Modifier.size(20.dp)
                 )
@@ -499,11 +503,11 @@ private fun IdleState() {
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text("Entdecken", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.TextSecondary, letterSpacing = 0.8.sp)
+        Text(stringResource(R.string.search_discover), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppTheme.TextSecondary, letterSpacing = 0.8.sp)
         listOf(
-            "\uD83C\uDFAC  Filme & Serien aus aller Welt",
-            "\uD83D\uDCFA  Anime und Animationsserien",
-            "\u2B50  Zu Listen hinzufügen & verwalten"
+            stringResource(R.string.search_discover_1),
+            stringResource(R.string.search_discover_2),
+            stringResource(R.string.search_discover_3)
         ).forEach { hint ->
             Text(text = hint, fontSize = 15.sp, color = AppTheme.TextSecondary, lineHeight = 22.sp)
         }
@@ -516,7 +520,7 @@ private fun LoadingState() {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator(color = AppTheme.YellowAccent, strokeWidth = 2.dp, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(12.dp))
-            Text("Suche...", color = AppTheme.TextSecondary, fontSize = 14.sp)
+            Text(stringResource(R.string.search_loading), color = AppTheme.TextSecondary, fontSize = 14.sp)
         }
     }
 }
@@ -527,7 +531,7 @@ private fun ErrorState(message: String?) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("\u26A0\uFE0F", fontSize = 36.sp)
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = message ?: "Ein Fehler ist aufgetreten.", color = AppTheme.TextSecondary, fontSize = 14.sp)
+            Text(text = stringResource(R.string.search_error), color = AppTheme.TextSecondary, fontSize = 14.sp)
         }
     }
 }
@@ -538,7 +542,7 @@ private fun EmptyState(query: String) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("\uD83D\uDD0D", fontSize = 36.sp)
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = "Kein Ergebnis für", color = AppTheme.TextSecondary, fontSize = 14.sp)
+            Text(text = stringResource(R.string.search_no_results_for), color = AppTheme.TextSecondary, fontSize = 14.sp)
             Text(text = "\u201E$query\u201C", color = AppTheme.TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
     }

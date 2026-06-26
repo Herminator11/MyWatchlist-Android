@@ -8,9 +8,11 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mywatchlist.R
 import com.example.mywatchlist.ui.theme.AppTheme
 
 // ─────────────────────────────────────────────
@@ -25,7 +27,7 @@ fun SeasonPicker(
         onValueChange = onSeasonChange,
         modifier = modifier.fillMaxWidth(),
         placeholder = {
-            Text("z.B. Staffel 2 oder Staffel 4 Teil 2", color = AppTheme.TextTertiary, fontSize = 13.sp)
+            Text(stringResource(R.string.season_hint), color = AppTheme.TextTertiary, fontSize = 13.sp)
         },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = AppTheme.YellowAccent,

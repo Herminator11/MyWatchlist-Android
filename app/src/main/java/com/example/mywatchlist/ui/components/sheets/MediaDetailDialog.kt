@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.components.sheets
+import androidx.compose.ui.res.stringResource
+import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.data.remote.*
 import com.example.mywatchlist.ui.viewmodel.*
@@ -198,7 +200,7 @@ fun MediaDetailDialog(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.Top) {
                                         Column(modifier = Modifier.weight(1f)) {
-                                            TicketTag(text = if (isTv) "SERIES" else "FEATURE")
+                                            TicketTag(text = if (isTv) stringResource(R.string.tag_series) else stringResource(R.string.tag_feature))
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Text(
                                                 text = movie.title,
@@ -224,11 +226,11 @@ fun MediaDetailDialog(
                         // ── LISTEN ──────────────────────────────
                         RevealItem(index = 3, revealed = revealed) {
                             Column {
-                                FieldLabel("Filed under")
+                                FieldLabel(stringResource(R.string.detail_filed_under))
                                 Spacer(modifier = Modifier.height(10.dp))
                                 if (lists.isEmpty()) {
                                     Text(
-                                        text = "— not on any list —",
+                                        text = stringResource(R.string.detail_not_on_list),
                                         fontFamily = SpecMono,
                                         fontSize = 13.sp,
                                         color = CinemaTheme.ParchmentDim
@@ -238,13 +240,13 @@ fun MediaDetailDialog(
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
-                                        lists.forEach { ListChip(it.displayName) }
+                                        lists.forEach { ListChip(stringResource(it.labelRes)) }
                                     }
                                 }
 
                                 // Persönliches "Fertig geschaut"-Datum (nur aus
                                 // Recently Watched). Bewusst HIER bei den
-                                // Bibliotheks-Infos statt unter "Released", damit
+                                // Bibliotheks-Infos statt unter stringResource(R.string.spec_released), damit
                                 // klar ist: das bist DU, keine Produktionsangabe.
                                 // Gespeichert als "finished: …"/"watched: …" (dd.MM.yyyy).
                                 val finishedDisplay = movie.finishedDate
@@ -254,7 +256,7 @@ fun MediaDetailDialog(
                                     ?.takeIf { it.isNotBlank() }
                                 if (finishedDisplay != null) {
                                     Spacer(modifier = Modifier.height(16.dp))
-                                    FieldLabel(if (isTv) "Finished watching" else "Watched on")
+                                    FieldLabel(if (isTv) stringResource(R.string.detail_finished_watching) else stringResource(R.string.detail_watched_on))
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = finishedDisplay,
@@ -276,16 +278,17 @@ fun MediaDetailDialog(
                             Column {
                                 if (isTv) {
                                     val tv = detailState as? DetailState.Tv
-                                    SpecRow("Seasons", tv?.seasons?.toString(),
+                                    SpecRow(stringResource(R.string.spec_seasons), tv?.seasons?.toString(),
                                         detailState is DetailState.Loading)
-                                    SpecRow("Episodes", tv?.episodes?.toString(),
+                                    SpecRow(stringResource(R.string.spec_episodes), tv?.episodes?.toString(),
                                         detailState is DetailState.Loading)
                                 } else {
                                     val mv = detailState as? DetailState.Movie
-                                    SpecRow("Runtime", mv?.runtimeMinutes?.let { "$it min" },
+                                    SpecRow(stringResource(R.string.spec_runtime),
+                                        mv?.runtimeMinutes?.let { stringResource(R.string.spec_runtime_value, it) },
                                         detailState is DetailState.Loading)
                                 }
-                                SpecRow("Released", formatReleaseDate(movie.date), false)
+                                SpecRow(stringResource(R.string.spec_released), formatReleaseDate(movie.date), false)
                             }
                         }
 
@@ -437,7 +440,7 @@ private fun InteractivePosterDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "BEWEGEN ZUM KIPPEN · TIPPEN ZUM SCHLIESSEN",
+                    text = stringResource(R.string.poster_hint),
                     fontFamily = SpecMono,
                     fontSize = 10.sp,
                     letterSpacing = 1.5.sp,
@@ -560,7 +563,7 @@ private fun PosterFrame(posterPath: String?, title: String, onClick: (() -> Unit
             ) {
                 Icon(
                     imageVector = Icons.Default.OpenInFull,
-                    contentDescription = "Poster vergrößern",
+                    contentDescription = stringResource(R.string.poster_expand),
                     tint = CinemaTheme.GoldBright,
                     modifier = Modifier.size(12.dp)
                 )
@@ -601,7 +604,7 @@ private fun CloseButton(onDismiss: () -> Unit) {
     ) {
         Icon(
             imageVector = Icons.Default.Close,
-            contentDescription = "Schließen",
+            contentDescription = stringResource(R.string.action_close),
             tint = CinemaTheme.ParchmentDim,
             modifier = Modifier.size(20.dp)
         )
@@ -635,7 +638,7 @@ private fun EditAction(onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = "BEARBEITEN",
+            text = stringResource(R.string.action_edit),
             fontFamily = SpecMono,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
@@ -667,7 +670,7 @@ private fun AddAction(onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = "ZUR LISTE HINZUFÜGEN",
+            text = stringResource(R.string.action_add_to_list),
             fontFamily = SpecMono,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,

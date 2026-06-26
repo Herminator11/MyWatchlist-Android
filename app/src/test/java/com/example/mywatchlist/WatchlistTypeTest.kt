@@ -10,11 +10,11 @@ import org.junit.Test
 class WatchListTypeTest {
 
     @Test
-    fun `alle WatchListTypes haben displayName`() {
+    fun `alle WatchListTypes haben ein Label`() {
         WatchListType.values().forEach { type ->
             assertTrue(
-                "displayName darf nicht leer sein für $type",
-                type.displayName.isNotBlank()
+                "labelRes muss gesetzt sein für $type",
+                type.labelRes != 0
             )
         }
     }
