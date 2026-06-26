@@ -236,6 +236,25 @@ private fun MainContent(onOpenSettings: () -> Unit) {
 
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsState()
 
+    // App-weite Undo-Snackbar fürs Löschen aus Listen
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(libraryViewModel) {
+        libraryViewModel.events.collect { event ->
+            when (event) {
+                is LibraryViewModel.LibraryEvent.Deleted -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "„${event.movie.title}“ gelöscht",
+                        actionLabel = "Rückgängig",
+                        duration = SnackbarDuration.Short
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        libraryViewModel.undoDelete(event.movie)
+                    }
+                }
+            }
+        }
+    }
+
     val bottomBarHeight = 120.dp
     val bottomBarHeightPx = with(LocalDensity.current) { bottomBarHeight.toPx() }
     val hazeState = remember { HazeState() }
@@ -291,6 +310,22 @@ private fun MainContent(onOpenSettings: () -> Unit) {
                     .offset { IntOffset(x = 0, y = bottomBarOffsetHeightPx.floatValue.roundToInt()) }
             ) {
                 FloatingBottomNavigation(navController = navController, hazeState = hazeState)
+            }
+
+            // Undo-Snackbar über der Floating-Navigation
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 96.dp, start = 12.dp, end = 12.dp)
+            ) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = AppTheme.DarkSurface,
+                    contentColor = AppTheme.TextPrimary,
+                    actionColor = AppTheme.YellowAccent,
+                    shape = RoundedCornerShape(12.dp)
+                )
             }
         }
     }

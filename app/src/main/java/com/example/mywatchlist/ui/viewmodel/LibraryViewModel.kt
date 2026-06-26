@@ -19,6 +19,9 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import com.example.mywatchlist.utils.parseSortDate
 import com.example.mywatchlist.utils.buildExportContent
 import com.example.mywatchlist.utils.currentExportTimestamp
@@ -40,6 +43,15 @@ class LibraryViewModel(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
+
+    // Einmal-Events für die UI (z. B. Lösch-Undo-Snackbar)
+    private val _events = MutableSharedFlow<LibraryEvent>(extraBufferCapacity = 1)
+    val events: SharedFlow<LibraryEvent> = _events.asSharedFlow()
+
+    sealed interface LibraryEvent {
+        // Trägt die komplette gelöschte Karte zum 1:1-Wiederherstellen
+        data class Deleted(val movie: MovieEntity) : LibraryEvent
+    }
 
     // ── Globaler Flow (nur für Hilfsfunktionen) ───────────────
     // Screens benutzen NICHT diesen Flow direkt –
@@ -190,13 +202,27 @@ class LibraryViewModel(
 
     // ── Spezifischen Eintrag löschen ──────────────────────────
 
-    fun deleteSpecificEntry(movie: MovieEntity) {
+    // notify=false unterdrückt die Undo-Snackbar – z. B. wenn das
+    // Löschen selbst schon ein Undo ist (Such-Quick-Add rückgängig).
+    fun deleteSpecificEntry(movie: MovieEntity, notify: Boolean = true) {
         launchIO("Eintrag konnte nicht gelöscht werden") {
                 movieDao.removeSeasonFromList(
                     movieId = movie.id,
                     listType = movie.listType,
                     seasonNumber = movie.seasonNumber
                 )
+                // Snackbar mit "Rückgängig" auslösen (UI sammelt das Event)
+                if (notify) _events.emit(LibraryEvent.Deleted(movie))
+        }
+    }
+
+    // ── Löschen rückgängig machen (Undo-Snackbar) ─────────────
+    // Fügt die gelöschte Karte 1:1 wieder ein – inkl. Notizen,
+    // Staffel, finishedDate und sortOrder.
+
+    fun undoDelete(movie: MovieEntity) {
+        launchIO("Wiederherstellen fehlgeschlagen") {
+                movieDao.insertOrUpdateMovie(movie)
         }
     }
 

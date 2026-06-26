@@ -90,7 +90,8 @@ fun SearchScreen(
                             mediaType = movie.mediaType ?: "movie",
                             listType = WatchListType.WANT_TO_WATCH.name,
                             seasonNumber = ""
-                        )
+                        ),
+                        notify = false   // ist selbst schon ein Undo → keine zweite Snackbar
                     )
                 }
             }
