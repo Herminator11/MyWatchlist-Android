@@ -389,7 +389,7 @@ private fun InteractivePosterDialog(
                                 drawRect(
                                     Brush.radialGradient(
                                         colors = listOf(
-                                            Color.White.copy(alpha = 0.50f),
+                                            Color.White.copy(alpha = 0.30f),
                                             Color.White.copy(alpha = 0.0f)
                                         ),
                                         center = Offset(gx, gy),
@@ -401,7 +401,7 @@ private fun InteractivePosterDialog(
                                     Brush.linearGradient(
                                         colors = listOf(
                                             Color.Transparent,
-                                            CinemaTheme.GoldBright.copy(alpha = 0.20f),
+                                            CinemaTheme.GoldBright.copy(alpha = 0.10f),
                                             Color.Transparent
                                         ),
                                         start = Offset(gx - size.width, gy - size.height),
