@@ -1,4 +1,4 @@
-package com.example.mywatchlist.components.common
+package com.example.mywatchlist.ui.components.common
 
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState

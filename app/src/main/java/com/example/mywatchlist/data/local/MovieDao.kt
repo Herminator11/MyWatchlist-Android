@@ -1,4 +1,4 @@
-package com.example.mywatchlist
+package com.example.mywatchlist.data.local
 
 import androidx.room.Dao
 import androidx.room.Delete

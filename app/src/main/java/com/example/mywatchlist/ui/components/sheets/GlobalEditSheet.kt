@@ -1,4 +1,7 @@
-package com.example.mywatchlist.components.sheets
+package com.example.mywatchlist.ui.components.sheets
+import com.example.mywatchlist.data.local.*
+import com.example.mywatchlist.data.remote.*
+import com.example.mywatchlist.ui.viewmodel.*
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,10 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.mywatchlist.LibraryViewModel
-import com.example.mywatchlist.MovieEntity
-import com.example.mywatchlist.WatchListType
-import com.example.mywatchlist.components.common.SeasonPicker
+import com.example.mywatchlist.ui.components.common.SeasonPicker
 import com.example.mywatchlist.ui.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)

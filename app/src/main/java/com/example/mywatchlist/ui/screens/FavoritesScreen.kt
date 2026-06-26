@@ -1,4 +1,7 @@
-package com.example.mywatchlist
+package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.local.*
+import com.example.mywatchlist.data.remote.*
+import com.example.mywatchlist.ui.viewmodel.*
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -21,9 +24,9 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.mywatchlist.components.cards.UniversalMediaCard
-import com.example.mywatchlist.components.sheets.GlobalEditSheet
-import com.example.mywatchlist.components.sheets.MediaDetailDialog
+import com.example.mywatchlist.ui.components.cards.UniversalMediaCard
+import com.example.mywatchlist.ui.components.sheets.GlobalEditSheet
+import com.example.mywatchlist.ui.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
 import com.example.mywatchlist.ui.theme.cinemaBackground
 import kotlinx.coroutines.launch

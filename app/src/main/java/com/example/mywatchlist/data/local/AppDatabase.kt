@@ -1,4 +1,4 @@
-package com.example.mywatchlist
+package com.example.mywatchlist.data.local
 
 import android.content.Context
 import androidx.room.Database

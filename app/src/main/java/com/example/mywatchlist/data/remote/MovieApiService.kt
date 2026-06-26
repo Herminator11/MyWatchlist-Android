@@ -1,4 +1,4 @@
-package com.example.mywatchlist
+package com.example.mywatchlist.data.remote
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

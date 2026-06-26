@@ -1,4 +1,5 @@
-package com.example.mywatchlist.components.cards
+package com.example.mywatchlist.ui.components.cards
+import com.example.mywatchlist.data.local.*
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -37,7 +38,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.mywatchlist.MovieEntity
 import com.example.mywatchlist.ui.theme.AppTheme
 
 // ─────────────────────────────────────────────

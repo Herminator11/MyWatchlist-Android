@@ -1,4 +1,5 @@
 package com.example.mywatchlist
+import com.example.mywatchlist.ui.screens.*
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

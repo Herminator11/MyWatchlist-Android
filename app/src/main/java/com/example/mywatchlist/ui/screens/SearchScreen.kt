@@ -1,4 +1,7 @@
-package com.example.mywatchlist
+package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.local.*
+import com.example.mywatchlist.data.remote.*
+import com.example.mywatchlist.ui.viewmodel.*
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -34,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.mywatchlist.components.sheets.AddToListSheet
-import com.example.mywatchlist.components.sheets.MediaDetailDialog
+import com.example.mywatchlist.ui.components.sheets.AddToListSheet
+import com.example.mywatchlist.ui.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
 import com.example.mywatchlist.ui.theme.cinemaBackground
 import kotlinx.coroutines.delay
