@@ -241,6 +241,29 @@ fun MediaDetailDialog(
                                         lists.forEach { ListChip(it.displayName) }
                                     }
                                 }
+
+                                // Persönliches "Fertig geschaut"-Datum (nur aus
+                                // Recently Watched). Bewusst HIER bei den
+                                // Bibliotheks-Infos statt unter "Released", damit
+                                // klar ist: das bist DU, keine Produktionsangabe.
+                                // Gespeichert als "finished: …"/"watched: …" (dd.MM.yyyy).
+                                val finishedDisplay = movie.finishedDate
+                                    ?.replace("finished: ", "")
+                                    ?.replace("watched: ", "")
+                                    ?.trim()
+                                    ?.takeIf { it.isNotBlank() }
+                                if (finishedDisplay != null) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    FieldLabel(if (isTv) "Finished watching" else "Watched on")
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = finishedDisplay,
+                                        fontFamily = SpecMono,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp,
+                                        color = CinemaTheme.Parchment
+                                    )
+                                }
                             }
                         }
 
@@ -263,18 +286,6 @@ fun MediaDetailDialog(
                                         detailState is DetailState.Loading)
                                 }
                                 SpecRow("Released", formatReleaseDate(movie.date), false)
-
-                                // "Fertig geschaut"-Datum (nur aus Recently Watched).
-                                // Gespeichert als "finished: …" (Serie) bzw.
-                                // "watched: …" (Film) im Format dd.MM.yyyy.
-                                val finishedDisplay = movie.finishedDate
-                                    ?.replace("finished: ", "")
-                                    ?.replace("watched: ", "")
-                                    ?.trim()
-                                    ?.takeIf { it.isNotBlank() }
-                                if (finishedDisplay != null) {
-                                    SpecRow("Finished", finishedDisplay, false)
-                                }
                             }
                         }
 
