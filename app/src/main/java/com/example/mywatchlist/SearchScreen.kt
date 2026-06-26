@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.mywatchlist.components.sheets.AddToListSheet
 import com.example.mywatchlist.ui.theme.AppTheme
+import com.example.mywatchlist.ui.theme.cinemaBackground
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +61,7 @@ fun SearchScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(AppTheme.DarkBg)
+            .cinemaBackground()
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -144,10 +145,11 @@ private fun SearchHeader() {
         Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = "Suche",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
+            fontFamily = AppTheme.Display,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Normal,
             color = AppTheme.TextPrimary,
-            letterSpacing = (-0.5).sp
+            letterSpacing = (-0.3).sp
         )
     }
 }

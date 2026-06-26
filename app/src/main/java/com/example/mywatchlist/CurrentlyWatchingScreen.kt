@@ -19,6 +19,7 @@ import com.example.mywatchlist.components.common.ScreenHeader
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
 import com.example.mywatchlist.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
+import com.example.mywatchlist.ui.theme.cinemaBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,7 @@ fun CurrentlyWatchingScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(AppTheme.DarkBg)
+            .cinemaBackground()
             .blur(blurRadius)
     ) {
         if (currentlyWatchingList.isEmpty()) {

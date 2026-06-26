@@ -25,6 +25,7 @@ import com.example.mywatchlist.components.common.ScreenHeader
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
 import com.example.mywatchlist.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
+import com.example.mywatchlist.ui.theme.cinemaBackground
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +52,7 @@ fun WantToWatchScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AppTheme.DarkBg)
+            .cinemaBackground()
             .blur(blurRadius)
     ) {
         TabRow(

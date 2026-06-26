@@ -90,13 +90,18 @@ fun MovieTrackerTopBar(onProfileClick: () -> Unit) {
                     modifier = Modifier
                         .size(32.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(AppTheme.YellowAccent)
+                        .background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(AppTheme.GoldBright, AppTheme.YellowAccent)
+                            )
+                        )
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "My Watchlist Tracker",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    text = "Watchlist",
+                    fontFamily = AppTheme.Display,
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Normal,
                     color = AppTheme.TextPrimary
                 )
             }
@@ -346,7 +351,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
 
                     // Animierte Farbe für die Hintergrundkapsel (sanftes Ein-/Ausblenden)
                     val animatedBackgroundColor by animateColorAsState(
-                        targetValue = if (isSelected) Color.White.copy(alpha = 0.15f) else Color.Transparent,
+                        targetValue = if (isSelected) AppTheme.YellowAccent.copy(alpha = 0.16f) else Color.Transparent,
                         animationSpec = tween(durationMillis = 250), // 250ms Dauer für weichen Übergang
                         label = "pillColor"
                     )
@@ -411,7 +416,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                                 Icon(
                                     imageVector = if (isSelected) item.activeIcon else item.inactiveIcon,
                                     contentDescription = item.label,
-                                    tint = if (isSelected) Color.White else AppTheme.TextSecondary,
+                                    tint = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
                                     modifier = Modifier
                                         .size(24.dp)
                                         .scale(iconScale)

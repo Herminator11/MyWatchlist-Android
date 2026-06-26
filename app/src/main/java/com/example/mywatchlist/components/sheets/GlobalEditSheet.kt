@@ -127,15 +127,18 @@ fun GlobalEditSheet(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = movie.title,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 17.sp,
+                        fontFamily = AppTheme.Display,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 21.sp,
                         color = AppTheme.TextPrimary,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = if (isTv) "TV Series" else "Movie",
-                        fontSize = 13.sp,
+                        text = if (isTv) "SERIES" else "FILM",
+                        fontFamily = AppTheme.Mono,
+                        fontSize = 11.sp,
+                        letterSpacing = 1.5.sp,
                         color = AppTheme.TextSecondary
                     )
                 }
@@ -395,10 +398,11 @@ fun SheetDivider() {
 fun SheetSectionLabel(label: String) {
     Text(
         text = label.uppercase(),
-        fontSize = 11.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = AppTheme.TextSecondary,
-        letterSpacing = 0.8.sp,
+        fontFamily = AppTheme.Mono,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
+        color = AppTheme.YellowAccent,
+        letterSpacing = 2.sp,
         modifier = Modifier.padding(start = 20.dp, bottom = 8.dp)
     )
 }

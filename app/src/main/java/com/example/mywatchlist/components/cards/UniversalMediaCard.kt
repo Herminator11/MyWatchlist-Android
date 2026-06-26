@@ -106,12 +106,13 @@ fun UniversalMediaCard(
                 ) {
                     Text(
                         text = titleText,
-                        fontSize = 15.sp,
+                        fontFamily = AppTheme.Body,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppTheme.TextPrimary,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = 20.sp,
+                        lineHeight = 19.sp,
                         modifier = Modifier.weight(1f, fill = false)
                     )
                 }
@@ -126,27 +127,32 @@ fun UniversalMediaCard(
                 ) {
                     Text(
                         text = displayDate,
-                        fontSize = 12.sp,
+                        fontFamily = AppTheme.Mono,
+                        fontSize = 11.sp,
                         color = AppTheme.TextSecondary,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Normal
                     )
                     Text("\u00B7", color = AppTheme.TextTertiary, fontSize = 12.sp)
                     Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.DarkSurface2) {
                         Text(
-                            text = if (item.mediaType == "tv") "TV Series" else "Movie",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
+                            text = if (item.mediaType == "tv") "SERIES" else "FILM",
+                            fontFamily = AppTheme.Mono,
+                            fontSize = 9.sp,
+                            letterSpacing = 1.sp,
+                            fontWeight = FontWeight.Bold,
                             color = AppTheme.TextSecondary,
                             modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
                         )
                     }
                     if (showFavoriteBadge && item.mediaType == "tv" && !item.favoriteCategory.isNullOrBlank()) {
-                        Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFF3D3500)) {
+                        Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.YellowAccent.copy(alpha = 0.14f)) {
                             Text(
                                 text = item.favoriteCategory,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = AppTheme.YellowAccent,
+                                fontFamily = AppTheme.Mono,
+                                fontSize = 9.sp,
+                                letterSpacing = 1.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppTheme.GoldBright,
                                 modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
                             )
                         }

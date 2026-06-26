@@ -48,8 +48,9 @@ fun SettingsScreen(
                 title = {
                     Text(
                         text = "Einstellungen",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontFamily = AppTheme.Display,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Normal,
                         color = AppTheme.TextPrimary
                     )
                 }

@@ -26,6 +26,7 @@ import com.example.mywatchlist.components.cards.UniversalMediaCard
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
 import com.example.mywatchlist.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
+import com.example.mywatchlist.ui.theme.cinemaBackground
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -54,7 +55,7 @@ fun FavoritesScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AppTheme.DarkBg)
+            .cinemaBackground()
             .blur(blurRadius)
     ) {
         // TAB-LEISTE

@@ -28,6 +28,15 @@ val SpecMono = FontFamily(
     Font(R.font.space_mono_bold, FontWeight.Bold)
 )
 
+// Body-Grotesk – leicht schmal, modern, gut lesbar in dichten Listen.
+// Distinktiv statt System/Inter/Roboto, passt zum Kino-Look.
+val BodySans = FontFamily(
+    Font(R.font.barlow_regular, FontWeight.Normal),
+    Font(R.font.barlow_medium, FontWeight.Medium),
+    Font(R.font.barlow_semibold, FontWeight.SemiBold),
+    Font(R.font.barlow_bold, FontWeight.Bold)
+)
+
 // ─────────────────────────────────────────────────────────────
 // Erweiterte, committete Palette: tiefes Noir + warmes Gold.
 // Baut auf AppTheme.YellowAccent auf, vertieft es aber zu einem
