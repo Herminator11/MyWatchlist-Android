@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.mywatchlist.components.cards.SwipeableMediaCard
 import com.example.mywatchlist.components.cards.UniversalMediaCard
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
 import com.example.mywatchlist.components.sheets.MediaDetailDialog
@@ -184,32 +183,28 @@ fun FavoritesScreen(
                                     .fillMaxWidth()
                                     .background(bgColor, RoundedCornerShape(16.dp))
                             ) {
-                                SwipeableMediaCard(
-                                    item = movieEntity,
-                                    onSwipe = { selectedMovieForEdit = movieEntity }
-                                ) {
-                                    UniversalMediaCard(
-                                        item = movieEntity.copy(finishedDate = null),
-                                        showFavoriteBadge = true,
-                                        onClick = { movieForDetail = movieEntity },
-                                        dragHandle = {
-                                            Box(
-                                                modifier = Modifier
-                                                    .draggableHandle()
-                                                    .padding(end = 14.dp)
-                                                    .size(38.dp),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Menu,
-                                                    contentDescription = "Reihenfolge ändern",
-                                                    tint = AppTheme.TextSecondary,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
+                                UniversalMediaCard(
+                                    item = movieEntity.copy(finishedDate = null),
+                                    showFavoriteBadge = true,
+                                    onClick = { movieForDetail = movieEntity },
+                                    onLongClick = { selectedMovieForEdit = movieEntity },
+                                    dragHandle = {
+                                        Box(
+                                            modifier = Modifier
+                                                .draggableHandle()
+                                                .padding(end = 14.dp)
+                                                .size(38.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Menu,
+                                                contentDescription = "Reihenfolge ändern",
+                                                tint = AppTheme.TextSecondary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
                                         }
-                                    )
-                                }
+                                    }
+                                )
                             }
                         }
                     }
@@ -230,7 +225,11 @@ fun FavoritesScreen(
         MediaDetailDialog(
             movie = movie,
             lists = libraryViewModel.getListsForEntity(movie),
-            onDismiss = { movieForDetail = null }
+            onDismiss = { movieForDetail = null },
+            onEdit = {
+                movieForDetail = null
+                selectedMovieForEdit = movie
+            }
         )
     }
 }

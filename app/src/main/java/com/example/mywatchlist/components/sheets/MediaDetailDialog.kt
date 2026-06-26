@@ -3,7 +3,9 @@ package com.example.mywatchlist.components.sheets
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -83,7 +86,8 @@ private sealed interface DetailState {
 fun MediaDetailDialog(
     movie: MovieEntity,
     lists: Set<WatchListType>,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onEdit: (() -> Unit)? = null
 ) {
     val isTv = movie.mediaType == "tv"
 
@@ -240,6 +244,14 @@ fun MediaDetailDialog(
                                 SpecRow("Released", formatReleaseDate(movie.date), false)
                             }
                         }
+
+                        // ── AKTION: Bearbeiten ──────────────────
+                        if (onEdit != null) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            RevealItem(index = 6, revealed = revealed) {
+                                EditAction(onClick = onEdit)
+                            }
+                        }
                     }
                 }
             }
@@ -255,7 +267,7 @@ private fun LaunchedEffectReveal(onTick: (Int) -> Unit) {
     androidx.compose.runtime.LaunchedEffect(Unit) {
         onTick(0)                 // mount (Container fade/scale)
         delay(120)
-        for (i in 1..5) {
+        for (i in 1..6) {
             onTick(i)
             delay(75)
         }
@@ -379,6 +391,43 @@ private fun CloseButton(onDismiss: () -> Unit) {
             contentDescription = "Schließen",
             tint = CinemaTheme.ParchmentDim,
             modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+// Primäre Aktion im Popup: führt zum Bearbeiten-Sheet.
+// Ersetzt die alte Swipe-zum-Bearbeiten-Geste (Gesten-Konflikt mit
+// dem Pager). Gold-umrandeter "Ticket"-Button im Mono-Stil.
+@Composable
+private fun EditAction(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .border(
+                BorderStroke(1.dp, CinemaTheme.Gold.copy(alpha = 0.55f)),
+                RoundedCornerShape(12.dp)
+            )
+            .background(CinemaTheme.Gold.copy(alpha = 0.08f))
+            .clickable { onClick() }
+            .padding(vertical = 13.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Edit,
+            contentDescription = null,
+            tint = CinemaTheme.GoldBright,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = "BEARBEITEN",
+            fontFamily = SpecMono,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 2.5.sp,
+            color = CinemaTheme.GoldBright
         )
     }
 }

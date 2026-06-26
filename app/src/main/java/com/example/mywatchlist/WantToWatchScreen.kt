@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mywatchlist.components.cards.SwipeableMediaCard
 import com.example.mywatchlist.components.cards.UniversalMediaCard
 import com.example.mywatchlist.components.common.ScreenHeader
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
@@ -107,16 +106,12 @@ fun WantToWatchScreen(
                 ) {
                     item { ScreenHeader(title = "Watchlist") }
                     items(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
-                        SwipeableMediaCard(
+                        UniversalMediaCard(
                             item = entity,
-                            onSwipe = { selectedMovieForEdit = entity }
-                        ) {
-                            UniversalMediaCard(
-                                item = entity,
-                                onMoveClick = { selectedMovieForMove = entity },
-                                onClick = { movieForDetail = entity }
-                            )
-                        }
+                            onMoveClick = { selectedMovieForMove = entity },
+                            onClick = { movieForDetail = entity },
+                            onLongClick = { selectedMovieForEdit = entity }
+                        )
                     }
                 }
             }
@@ -137,7 +132,11 @@ fun WantToWatchScreen(
         MediaDetailDialog(
             movie = movie,
             lists = libraryViewModel.getListsForEntity(movie),
-            onDismiss = { movieForDetail = null }
+            onDismiss = { movieForDetail = null },
+            onEdit = {
+                movieForDetail = null
+                selectedMovieForEdit = movie
+            }
         )
     }
 

@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import com.example.mywatchlist.components.cards.SwipeableMediaCard
 import com.example.mywatchlist.components.cards.UniversalMediaCard
 import com.example.mywatchlist.components.common.ScreenHeader
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
@@ -114,15 +113,11 @@ fun RecentlyWatchedScreen(
                             YearHeader(year = year)
                         }
                         items(yearEntries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
-                            SwipeableMediaCard(
+                            UniversalMediaCard(
                                 item = movieEntity,
-                                onSwipe = { selectedMovieForEdit = movieEntity }
-                            ) {
-                                UniversalMediaCard(
-                                    item = movieEntity,
-                                    onClick = { movieForDetail = movieEntity }
-                                )
-                            }
+                                onClick = { movieForDetail = movieEntity },
+                                onLongClick = { selectedMovieForEdit = movieEntity }
+                            )
                         }
                     }
                 }
@@ -142,7 +137,11 @@ fun RecentlyWatchedScreen(
         MediaDetailDialog(
             movie = movie,
             lists = libraryViewModel.getListsForEntity(movie),
-            onDismiss = { movieForDetail = null }
+            onDismiss = { movieForDetail = null },
+            onEdit = {
+                movieForDetail = null
+                selectedMovieForEdit = movie
+            }
         )
     }
 }

@@ -13,7 +13,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
-import com.example.mywatchlist.components.cards.SwipeableMediaCard
 import com.example.mywatchlist.components.cards.UniversalMediaCard
 import com.example.mywatchlist.components.common.ScreenHeader
 import com.example.mywatchlist.components.sheets.GlobalEditSheet
@@ -62,17 +61,13 @@ fun CurrentlyWatchingScreen(
                 item { ScreenHeader(title = "Watching") }
 
                 items(items = currentlyWatchingList, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
-                    SwipeableMediaCard(
+                    UniversalMediaCard(
                         item = movieEntity,
-                        onSwipe = { selectedMovieForEdit = movieEntity }
-                    ) {
-                        UniversalMediaCard(
-                            item = movieEntity,
-                            // Done-Button öffnet DatePicker (Story 3.2)
-                            onFinishClick = { movieForDatePicker = movieEntity },
-                            onClick = { movieForDetail = movieEntity }
-                        )
-                    }
+                        // Done-Button öffnet DatePicker (Story 3.2)
+                        onFinishClick = { movieForDatePicker = movieEntity },
+                        onClick = { movieForDetail = movieEntity },
+                        onLongClick = { selectedMovieForEdit = movieEntity }
+                    )
                 }
             }
         }
@@ -92,7 +87,11 @@ fun CurrentlyWatchingScreen(
         MediaDetailDialog(
             movie = movie,
             lists = libraryViewModel.getListsForEntity(movie),
-            onDismiss = { movieForDetail = null }
+            onDismiss = { movieForDetail = null },
+            onEdit = {
+                movieForDetail = null
+                selectedMovieForEdit = movie
+            }
         )
     }
 

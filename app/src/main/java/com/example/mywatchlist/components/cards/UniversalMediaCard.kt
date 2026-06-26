@@ -1,7 +1,9 @@
 package com.example.mywatchlist.components.cards
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,7 +42,10 @@ import com.example.mywatchlist.ui.theme.AppTheme
 
 // ─────────────────────────────────────────────
 // 1. UNIVERSELLE MEDIAKARTE
+// onClick      → Detail-Popup öffnen
+// onLongClick  → Bearbeiten (ersetzt die alte Swipe-Geste)
 // ─────────────────────────────────────────────
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UniversalMediaCard(
     item: MovieEntity,
@@ -48,6 +53,7 @@ fun UniversalMediaCard(
     onFinishClick: (() -> Unit)? = null,
     onMoveClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
     showFavoriteBadge: Boolean = false,
     dragHandle: (@Composable () -> Unit)? = null
 ) {
@@ -55,7 +61,14 @@ fun UniversalMediaCard(
         modifier = modifier
             .fillMaxWidth()
             .height(110.dp)
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+            .then(
+                if (onClick != null || onLongClick != null)
+                    Modifier.combinedClickable(
+                        onClick = { onClick?.invoke() },
+                        onLongClick = onLongClick
+                    )
+                else Modifier
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = AppTheme.DarkSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
