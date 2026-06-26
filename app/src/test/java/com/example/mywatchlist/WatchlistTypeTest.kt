@@ -41,10 +41,10 @@ class WatchListTypeTest {
     }
 
     @Test
-    fun `genau fuenf WatchListTypes definiert`() {
+    fun `genau sechs WatchListTypes definiert`() {
         // Sicherheitsnetz: wenn neue Listen hinzugefügt werden,
         // muss dieser Test bewusst aktualisiert werden
-        assertEquals(5, WatchListType.values().size)
+        assertEquals(6, WatchListType.values().size)
     }
 
     @Test

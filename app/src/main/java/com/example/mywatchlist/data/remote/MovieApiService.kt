@@ -6,9 +6,11 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 import com.google.gson.annotations.SerializedName
+import com.example.mywatchlist.BuildConfig
 
 const val TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
-const val TMDB_API_KEY = "REDACTED"
+// Key kommt aus local.properties → BuildConfig (nicht im Repo).
+val TMDB_API_KEY: String = BuildConfig.TMDB_API_KEY
 
 // ── Detail-Antworten (für das Detail-Popup) ───────────────────
 // search/multi liefert KEINE Staffel-/Folgenzahl – dafür braucht
@@ -36,7 +38,10 @@ data class MovieDetails(
 )
 
 data class MovieSearchResponse(
-    val results: List<TmdbMovie>
+    val results: List<TmdbMovie>,
+    val page: Int = 1,
+    @SerializedName("total_pages")
+    val totalPages: Int = 1
 )
 
 data class TmdbMovie(
@@ -83,6 +88,7 @@ interface MovieApiService {
     @GET("search/multi")
     suspend fun searchMulti(
         @Query("query") query: String,
+        @Query("page") page: Int = 1,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
         @Query("language") language: String = "de-DE"
     ): MovieSearchResponse

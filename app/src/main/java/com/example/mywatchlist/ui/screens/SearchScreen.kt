@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -153,7 +154,10 @@ fun SearchScreen(
                         libraryViewModel = libraryViewModel,
                         onAddClick = { selectedMovieForAdd = it },
                         onCardClick = { movieForDetail = it },
-                        onQuickAdd = quickAdd
+                        onQuickAdd = quickAdd,
+                        isLoadingMore = searchViewModel.isLoadingMore,
+                        canLoadMore = searchViewModel.canLoadMore,
+                        onLoadMore = { searchViewModel.loadNextPage() }
                     )
                 }
             }
@@ -285,9 +289,28 @@ private fun ResultsList(
     libraryViewModel: LibraryViewModel,
     onAddClick: (TmdbMovie) -> Unit,
     onCardClick: (TmdbMovie) -> Unit,
-    onQuickAdd: (TmdbMovie) -> Unit
+    onQuickAdd: (TmdbMovie) -> Unit,
+    isLoadingMore: Boolean,
+    canLoadMore: Boolean,
+    onLoadMore: () -> Unit
 ) {
+    val listState = rememberLazyListState()
+
+    // Infinite-Scroll: nachladen, wenn die letzten ~3 Items sichtbar werden
+    LaunchedEffect(listState, canLoadMore, isLoadingMore) {
+        snapshotFlow {
+            val info = listState.layoutInfo
+            val last = info.visibleItemsInfo.lastOrNull()?.index ?: 0
+            last to info.totalItemsCount
+        }.collect { (last, total) ->
+            if (canLoadMore && !isLoadingMore && total > 0 && last >= total - 3) {
+                onLoadMore()
+            }
+        }
+    }
+
     LazyColumn(
+        state = listState,
         verticalArrangement = Arrangement.spacedBy(10.dp),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 120.dp)
     ) {
@@ -309,6 +332,23 @@ private fun ResultsList(
                     onAddClick = { onAddClick(movie) },
                     onClick = { onCardClick(movie) }
                 )
+            }
+        }
+        // Fußzeilen-Spinner beim Nachladen
+        if (isLoadingMore) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = AppTheme.YellowAccent,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
             }
         }
     }
