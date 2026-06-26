@@ -1,6 +1,4 @@
 package com.example.mywatchlist.ui.screens
-import com.example.mywatchlist.data.local.*
-import com.example.mywatchlist.data.remote.*
 import com.example.mywatchlist.ui.viewmodel.*
 
 import androidx.compose.foundation.background

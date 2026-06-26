@@ -1,8 +1,6 @@
 package com.example.mywatchlist.data
 import com.example.mywatchlist.data.local.*
-import com.example.mywatchlist.data.remote.*
 import com.example.mywatchlist.ui.viewmodel.*
-import com.example.mywatchlist.utils.*
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
