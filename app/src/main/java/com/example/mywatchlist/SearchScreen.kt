@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -34,9 +35,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.mywatchlist.components.sheets.AddToListSheet
+import com.example.mywatchlist.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
 import com.example.mywatchlist.ui.theme.cinemaBackground
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +53,45 @@ fun SearchScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     var selectedMovieForAdd by remember { mutableStateOf<TmdbMovie?>(null) }
+    var movieForDetail by remember { mutableStateOf<TmdbMovie?>(null) }
+
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val blurRadius by animateDpAsState(
+        targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        label = "detail_blur"
+    )
+
+    // Quick-Add per Swipe: Filme sofort in "Want to Watch" (mit Undo).
+    // Serien öffnen das Sheet, weil eine Staffel gewählt werden muss.
+    val quickAdd: (TmdbMovie) -> Unit = { movie ->
+        if ((movie.mediaType ?: "movie") == "tv") {
+            selectedMovieForAdd = movie
+        } else {
+            libraryViewModel.addNewCard(movie, WatchListType.WANT_TO_WATCH)
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "„${movie.displayTitle}“ → Want to Watch",
+                    actionLabel = "Rückgängig",
+                    duration = SnackbarDuration.Short
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    libraryViewModel.deleteSpecificEntry(
+                        MovieEntity(
+                            id = movie.id,
+                            title = movie.displayTitle,
+                            date = movie.displayDate,
+                            posterPath = movie.posterPath,
+                            mediaType = movie.mediaType ?: "movie",
+                            listType = WatchListType.WANT_TO_WATCH.name,
+                            seasonNumber = ""
+                        )
+                    )
+                }
+            }
+        }
+    }
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotBlank()) {
@@ -63,7 +105,11 @@ fun SearchScreen(
             .fillMaxSize()
             .cinemaBackground()
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(blurRadius)
+        ) {
 
             // HEADER
             SearchHeader()
@@ -102,11 +148,21 @@ fun SearchScreen(
                     SearchState.RESULTS -> ResultsList(
                         results = searchViewModel.searchResults,
                         libraryViewModel = libraryViewModel,
-                        onAddClick = { selectedMovieForAdd = it }
+                        onAddClick = { selectedMovieForAdd = it },
+                        onCardClick = { movieForDetail = it },
+                        onQuickAdd = quickAdd
                     )
                 }
             }
         }
+
+        // Undo-Snackbar (über der Floating-Navigation)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 130.dp, start = 12.dp, end = 12.dp)
+        )
     }
 
     // SHEET – 2-Step für neue Karten
@@ -115,6 +171,27 @@ fun SearchScreen(
             movie = movie,
             libraryViewModel = libraryViewModel,
             onDismiss = { selectedMovieForAdd = null }
+        )
+    }
+
+    // DETAIL-POPUP – Tap auf eine Trefferkarte
+    movieForDetail?.let { movie ->
+        val transientEntity = MovieEntity(
+            id = movie.id,
+            title = movie.displayTitle,
+            date = movie.releaseDate ?: movie.firstAirDate ?: "",
+            posterPath = movie.posterPath,
+            mediaType = movie.mediaType ?: "movie",
+            listType = ""
+        )
+        MediaDetailDialog(
+            movie = transientEntity,
+            lists = libraryViewModel.getListsForMovie(movie),
+            onDismiss = { movieForDetail = null },
+            onAdd = {
+                movieForDetail = null
+                selectedMovieForAdd = movie
+            }
         )
     }
 
@@ -198,11 +275,14 @@ private fun SearchBar(
 }
 
 // ── Ergebnisliste ──────────────────────────────────────────────
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ResultsList(
     results: List<TmdbMovie>,
     libraryViewModel: LibraryViewModel,
-    onAddClick: (TmdbMovie) -> Unit
+    onAddClick: (TmdbMovie) -> Unit,
+    onCardClick: (TmdbMovie) -> Unit,
+    onQuickAdd: (TmdbMovie) -> Unit
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -210,7 +290,7 @@ private fun ResultsList(
     ) {
         item {
             Text(
-                text = "${results.size} Ergebnisse",
+                text = "${results.size} Ergebnisse · zum Merken nach rechts wischen",
                 color = AppTheme.TextSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
@@ -219,12 +299,70 @@ private fun ResultsList(
         }
         items(results, key = { it.id.toString() + (it.mediaType ?: "") }) { movie ->
             val alreadySaved = libraryViewModel.isFavorite(movie.id)
-            SearchResultCard(
-                movie = movie,
-                alreadySaved = alreadySaved,
-                onAddClick = { onAddClick(movie) }
-            )
+            SwipeToAdd(onAdd = { onQuickAdd(movie) }) {
+                SearchResultCard(
+                    movie = movie,
+                    alreadySaved = alreadySaved,
+                    onAddClick = { onAddClick(movie) },
+                    onClick = { onCardClick(movie) }
+                )
+            }
         }
+    }
+}
+
+// Swipe-rechts auf einer Trefferkarte → Quick-Add ("Want to Watch").
+// Schnappt zurück (kein echtes Dismiss); löst nur die Aktion aus.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeToAdd(onAdd: () -> Unit, content: @Composable () -> Unit) {
+    val state = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.StartToEnd) onAdd()
+            false
+        },
+        positionalThreshold = { it * 0.4f }
+    )
+    SwipeToDismissBox(
+        state = state,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
+        backgroundContent = { AddSwipeBackground(state) },
+        content = { content() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddSwipeBackground(state: SwipeToDismissBoxState) {
+    val active = state.targetValue == SwipeToDismissBoxValue.StartToEnd
+    val bg by animateColorAsState(
+        targetValue = if (active) AppTheme.YellowAccent else AppTheme.DarkSurface2,
+        label = "add_swipe_bg"
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(16.dp))
+            .background(bg)
+            .padding(start = 22.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            tint = if (active) Color.Black else AppTheme.TextSecondary,
+            modifier = Modifier.size(22.dp)
+        )
+        Text(
+            text = "Want to Watch",
+            fontFamily = AppTheme.Mono,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+            color = if (active) Color.Black else AppTheme.TextSecondary
+        )
     }
 }
 
@@ -233,10 +371,14 @@ private fun ResultsList(
 private fun SearchResultCard(
     movie: TmdbMovie,
     alreadySaved: Boolean,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().height(110.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = AppTheme.DarkSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)

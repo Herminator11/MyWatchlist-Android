@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -87,7 +88,8 @@ fun MediaDetailDialog(
     movie: MovieEntity,
     lists: Set<WatchListType>,
     onDismiss: () -> Unit,
-    onEdit: (() -> Unit)? = null
+    onEdit: (() -> Unit)? = null,
+    onAdd: (() -> Unit)? = null
 ) {
     val isTv = movie.mediaType == "tv"
 
@@ -245,11 +247,15 @@ fun MediaDetailDialog(
                             }
                         }
 
-                        // ── AKTION: Bearbeiten ──────────────────
-                        if (onEdit != null) {
+                        // ── PRIMÄRAKTION: Hinzufügen ODER Bearbeiten ──
+                        if (onAdd != null || onEdit != null) {
                             Spacer(modifier = Modifier.height(20.dp))
                             RevealItem(index = 6, revealed = revealed) {
-                                EditAction(onClick = onEdit)
+                                if (onAdd != null) {
+                                    AddAction(onClick = onAdd)
+                                } else if (onEdit != null) {
+                                    EditAction(onClick = onEdit)
+                                }
                             }
                         }
                     }
@@ -428,6 +434,38 @@ private fun EditAction(onClick: () -> Unit) {
             fontSize = 12.sp,
             letterSpacing = 2.5.sp,
             color = CinemaTheme.GoldBright
+        )
+    }
+}
+
+// Primäre Aktion auf dem Such-Screen: gefüllter Gold-Button (CTA),
+// öffnet das Liste-wählen-Sheet. Stärker betont als EditAction.
+@Composable
+private fun AddAction(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(CinemaTheme.Gold)
+            .clickable { onClick() }
+            .padding(vertical = 14.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            tint = CinemaTheme.Ink,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = "ZUR LISTE HINZUFÜGEN",
+            fontFamily = SpecMono,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            letterSpacing = 2.sp,
+            color = CinemaTheme.Ink
         )
     }
 }
