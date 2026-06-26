@@ -58,7 +58,7 @@ fun CurrentlyWatchingScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
             ) {
-                item { ScreenHeader(title = "Watching") }
+                item { ScreenHeader(title = "Currently Watching") }
 
                 items(items = currentlyWatchingList, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
                     UniversalMediaCard(

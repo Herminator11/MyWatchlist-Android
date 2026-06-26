@@ -106,7 +106,7 @@ fun RecentlyWatchedScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp),
                 ) {
-                    item { ScreenHeader(title = "History") }
+                    item { ScreenHeader(title = "Recently Watched") }
 
                     grouped.forEach { (year, yearEntries) ->
                         item(key = "header_${page}_$year") {

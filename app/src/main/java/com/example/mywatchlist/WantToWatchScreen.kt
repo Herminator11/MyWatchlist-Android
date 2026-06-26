@@ -104,7 +104,7 @@ fun WantToWatchScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
                 ) {
-                    item { ScreenHeader(title = "Watchlist") }
+                    item { ScreenHeader(title = "Want to watch") }
                     items(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
                         UniversalMediaCard(
                             item = entity,
