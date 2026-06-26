@@ -1,0 +1,42 @@
+@startuml
+class com.example.mywatchlist.MovieSearchResponse {
+}
+class com.example.mywatchlist.TmdbMovie {
+}
+interface com.example.mywatchlist.MovieApiService {
++ MovieSearchResponse searchMulti(String,String,String)
+}
+
+class com.example.mywatchlist.MovieApi {
+-  retrofit
++ MovieApiService service
+}
+
+class com.example.mywatchlist.MainActivity {
++ void onCreate(Bundle?)
+}
+
+class com.example.mywatchlist.BottomNavItem$CurrentlyWatching {
+}
+class com.example.mywatchlist.BottomNavItem$Favorites {
+}
+class com.example.mywatchlist.BottomNavItem$Watchlist {
+}
+class com.example.mywatchlist.BottomNavItem$Search {
+}
+class com.example.mywatchlist.BottomNavItem {
+}
+class com.example.mywatchlist.MediaItem {
+}
+
+
+androidx.activity.ComponentActivity <|-- com.example.mywatchlist.MainActivity
+com.example.mywatchlist.BottomNavItem +.. com.example.mywatchlist.BottomNavItem$CurrentlyWatching
+com.example.mywatchlist.BottomNavItem <|-- com.example.mywatchlist.BottomNavItem$CurrentlyWatching
+com.example.mywatchlist.BottomNavItem +.. com.example.mywatchlist.BottomNavItem$Favorites
+com.example.mywatchlist.BottomNavItem <|-- com.example.mywatchlist.BottomNavItem$Favorites
+com.example.mywatchlist.BottomNavItem +.. com.example.mywatchlist.BottomNavItem$Watchlist
+com.example.mywatchlist.BottomNavItem <|-- com.example.mywatchlist.BottomNavItem$Watchlist
+com.example.mywatchlist.BottomNavItem +.. com.example.mywatchlist.BottomNavItem$Search
+com.example.mywatchlist.BottomNavItem <|-- com.example.mywatchlist.BottomNavItem$Search
+@enduml
