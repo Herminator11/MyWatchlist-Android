@@ -1,12 +1,15 @@
 package com.example.mywatchlist.components.sheets
 
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,29 +24,40 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.mywatchlist.MovieApi
 import com.example.mywatchlist.MovieEntity
 import com.example.mywatchlist.WatchListType
-import com.example.mywatchlist.ui.theme.AppTheme
+import com.example.mywatchlist.ui.theme.CinemaTheme
+import com.example.mywatchlist.ui.theme.DisplaySerif
+import com.example.mywatchlist.ui.theme.SpecMono
+import kotlinx.coroutines.delay
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 // ─────────────────────────────────────────────
 // Ladezustand der TMDB-Detaildaten
@@ -55,12 +69,15 @@ private sealed interface DetailState {
     data object Error : DetailState
 }
 
-// ─────────────────────────────────────────────
-// DETAIL-POPUP
-// Erscheint zentriert über dem (unscharfen) Hintergrund.
-// Zeigt: zugewiesene Listen, Staffel-/Folgenzahl (Serie),
-// Release-Datum.
-// ─────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════
+// DETAIL-POPUP  ·  "Vintage-Kinoplakat / Datenblatt"
+//
+// Aesthetik (siehe CLAUDE.md):
+//  · Typo:   DM Serif Display (Titel) + Space Mono (Daten)
+//  · Farbe:  tiefes Noir-Charcoal mit warmem Goldakzent
+//  · Tiefe:  geschichtete Gradienten + goldener Lichtschein
+//  · Motion: orchestrierter Auftritt mit gestaffeltem Reveal
+// ═════════════════════════════════════════════════════════════
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MediaDetailDialog(
@@ -89,6 +106,22 @@ fun MediaDetailDialog(
         }
     }
 
+    // ── Orchestrierter Auftritt ──────────────────────────────
+    var mounted by remember { mutableStateOf(false) }
+    var revealed by remember { mutableIntStateOf(0) }
+    LaunchedEffectReveal { mounted = true; revealed = it }
+
+    val containerScale by animateFloatAsState(
+        targetValue = if (mounted) 1f else 0.90f,
+        animationSpec = tween(300, easing = EaseOutCubic),
+        label = "container_scale"
+    )
+    val containerAlpha by animateFloatAsState(
+        targetValue = if (mounted) 1f else 0f,
+        animationSpec = tween(240),
+        label = "container_alpha"
+    )
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -96,200 +129,350 @@ fun MediaDetailDialog(
         Surface(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .padding(vertical = 24.dp),
-            shape = RoundedCornerShape(20.dp),
-            color = AppTheme.DarkSurface
+                .padding(vertical = 24.dp)
+                .graphicsLayer {
+                    scaleX = containerScale
+                    scaleY = containerScale
+                    alpha = containerAlpha
+                },
+            shape = RoundedCornerShape(22.dp),
+            color = CinemaTheme.Ink
         ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(20.dp)
-            ) {
-                // ── HEADER: Poster + Titel + Schließen ──────────
-                Row(verticalAlignment = Alignment.Top) {
-                    if (movie.posterPath != null) {
-                        AsyncImage(
-                            model = "https://image.tmdb.org/t/p/w500${movie.posterPath}",
-                            contentDescription = movie.title,
-                            modifier = Modifier
-                                .size(92.dp, 138.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            contentScale = ContentScale.Crop
+                    // Tiefe: vertikaler Charcoal→Ink Verlauf …
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(CinemaTheme.Charcoal, CinemaTheme.Ink)
                         )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(92.dp, 138.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(AppTheme.DarkSurface2),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Info,
-                                contentDescription = null,
-                                tint = AppTheme.TextSecondary
-                            )
-                        }
-                    }
+                    )
+                    // … plus warmer Lichtschein oben links wie ein Spot.
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                CinemaTheme.Gold.copy(alpha = 0.16f),
+                                Color.Transparent
+                            ),
+                            radius = 520f
+                        )
+                    )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    // Filmstreifen-Perforation als Kopfmotiv
+                    SprocketStrip()
 
-                    Spacer(modifier = Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.Top) {
-                            Text(
-                                text = movie.title,
-                                fontSize = 19.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AppTheme.TextPrimary,
-                                lineHeight = 24.sp,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onDismiss() },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Schließen",
-                                    tint = AppTheme.TextSecondary,
-                                    modifier = Modifier.size(20.dp)
-                                )
+                    Column(modifier = Modifier.padding(22.dp)) {
+                        // ── HEADER: Poster + Titel + Schließen ──
+                        RevealItem(index = 1, revealed = revealed) {
+                            Row(verticalAlignment = Alignment.Top) {
+                                PosterFrame(posterPath = movie.posterPath, title = movie.title)
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.Top) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            TicketTag(text = if (isTv) "SERIES" else "FEATURE")
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = movie.title,
+                                                fontFamily = DisplaySerif,
+                                                fontWeight = FontWeight.Normal,
+                                                fontSize = 27.sp,
+                                                lineHeight = 30.sp,
+                                                color = CinemaTheme.Parchment,
+                                                maxLines = 3,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                        CloseButton(onDismiss)
+                                    }
+                                }
                             }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = AppTheme.DarkSurface2
-                        ) {
-                            Text(
-                                text = if (isTv) "TV Series" else "Movie",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = AppTheme.TextSecondary,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                            )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                        RevealItem(index = 2, revealed = revealed) { GoldRule() }
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // ── LISTEN ──────────────────────────────
+                        RevealItem(index = 3, revealed = revealed) {
+                            Column {
+                                FieldLabel("Filed under")
+                                Spacer(modifier = Modifier.height(10.dp))
+                                if (lists.isEmpty()) {
+                                    Text(
+                                        text = "— not on any list —",
+                                        fontFamily = SpecMono,
+                                        fontSize = 13.sp,
+                                        color = CinemaTheme.ParchmentDim
+                                    )
+                                } else {
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        lists.forEach { ListChip(it.displayName) }
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(20.dp))
-                HorizontalDivider(color = AppTheme.TextTertiary.copy(alpha = 0.4f))
-                Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(18.dp))
+                        RevealItem(index = 4, revealed = revealed) { GoldRule() }
+                        Spacer(modifier = Modifier.height(6.dp))
 
-                // ── LISTEN ───────────────────────────────────────
-                DetailSectionLabel("Auf folgenden Listen")
-                Spacer(modifier = Modifier.height(8.dp))
-                if (lists.isEmpty()) {
-                    Text(
-                        text = "Auf keiner Liste",
-                        fontSize = 14.sp,
-                        color = AppTheme.TextSecondary
-                    )
-                } else {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        lists.forEach { listType ->
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFF3D3500)
-                            ) {
-                                Text(
-                                    text = listType.displayName,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = AppTheme.YellowAccent,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                                )
+                        // ── DATENBLATT (Spec sheet) ─────────────
+                        RevealItem(index = 5, revealed = revealed) {
+                            Column {
+                                if (isTv) {
+                                    val tv = detailState as? DetailState.Tv
+                                    SpecRow("Seasons", tv?.seasons?.toString(),
+                                        detailState is DetailState.Loading)
+                                    SpecRow("Episodes", tv?.episodes?.toString(),
+                                        detailState is DetailState.Loading)
+                                } else {
+                                    val mv = detailState as? DetailState.Movie
+                                    SpecRow("Runtime", mv?.runtimeMinutes?.let { "$it min" },
+                                        detailState is DetailState.Loading)
+                                }
+                                SpecRow("Released", formatReleaseDate(movie.date), false)
                             }
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = AppTheme.TextTertiary.copy(alpha = 0.4f))
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ── INFO-ZEILEN ─────────────────────────────────
-                if (isTv) {
-                    val tv = detailState as? DetailState.Tv
-                    DetailRow(
-                        label = "Staffeln",
-                        value = tv?.seasons?.toString(),
-                        loading = detailState is DetailState.Loading
-                    )
-                    DetailRow(
-                        label = "Folgen",
-                        value = tv?.episodes?.toString(),
-                        loading = detailState is DetailState.Loading
-                    )
-                } else {
-                    val mv = detailState as? DetailState.Movie
-                    DetailRow(
-                        label = "Laufzeit",
-                        value = mv?.runtimeMinutes?.let { "$it Min." },
-                        loading = detailState is DetailState.Loading
-                    )
-                }
-
-                DetailRow(
-                    label = "Release",
-                    value = formatReleaseDate(movie.date),
-                    loading = false
-                )
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────
-// HILFS-COMPOSABLES
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// AUFTRITTS-CHOREOGRAFIE
+// ─────────────────────────────────────────────────────────────
 @Composable
-private fun DetailSectionLabel(label: String) {
-    Text(
-        text = label.uppercase(),
-        fontSize = 11.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = AppTheme.TextSecondary,
-        letterSpacing = 0.8.sp
-    )
+private fun LaunchedEffectReveal(onTick: (Int) -> Unit) {
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        onTick(0)                 // mount (Container fade/scale)
+        delay(120)
+        for (i in 1..5) {
+            onTick(i)
+            delay(75)
+        }
+    }
 }
 
 @Composable
-private fun DetailRow(label: String, value: String?, loading: Boolean) {
+private fun RevealItem(index: Int, revealed: Int, content: @Composable () -> Unit) {
+    val visible = revealed >= index
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(380, easing = EaseOutCubic),
+        label = "reveal_alpha_$index"
+    )
+    val lift = with(LocalDensity.current) { 16.dp.toPx() }
+    val translation by animateFloatAsState(
+        targetValue = if (visible) 0f else lift,
+        animationSpec = tween(440, easing = EaseOutCubic),
+        label = "reveal_y_$index"
+    )
+    Box(
+        modifier = Modifier.graphicsLayer {
+            this.alpha = alpha
+            translationY = translation
+        }
+    ) { content() }
+}
+
+// ─────────────────────────────────────────────────────────────
+// BAUSTEINE
+// ─────────────────────────────────────────────────────────────
+
+// Filmstreifen-Perforation am oberen Rand
+@Composable
+private fun SprocketStrip() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .background(CinemaTheme.Ink.copy(alpha = 0.6f))
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        horizontalArrangement = Arrangement.spacedBy(9.dp)
     ) {
-        Text(
-            text = label,
-            fontSize = 15.sp,
-            color = AppTheme.TextSecondary
-        )
-        when {
-            loading -> CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
-                strokeWidth = 2.dp,
-                color = AppTheme.YellowAccent
-            )
-            else -> Text(
-                text = value ?: "–",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = AppTheme.TextPrimary
+        repeat(14) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(7.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(CinemaTheme.Ember.copy(alpha = 0.55f))
             )
         }
     }
 }
 
-// "2008-01-20" → "20.01.2008"; nur Jahr oder leer → Rohwert/–
+@Composable
+private fun PosterFrame(posterPath: String?, title: String) {
+    Box(
+        modifier = Modifier
+            .size(96.dp, 144.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(CinemaTheme.Smoke)
+    ) {
+        if (posterPath != null) {
+            AsyncImage(
+                model = "https://image.tmdb.org/t/p/w500$posterPath",
+                contentDescription = title,
+                modifier = Modifier
+                    .size(96.dp, 144.dp)
+                    .drawWithContent {
+                        drawContent()
+                        // Sanftes Vignette unten für Plakat-Tiefe
+                        drawRect(
+                            Brush.verticalGradient(
+                                0.55f to Color.Transparent,
+                                1f to CinemaTheme.Ink.copy(alpha = 0.55f)
+                            )
+                        )
+                    },
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(Modifier.size(96.dp, 144.dp), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Info, contentDescription = null, tint = CinemaTheme.ParchmentDim)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TicketTag(text: String) {
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        color = Color.Transparent,
+        modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(CinemaTheme.Gold.copy(alpha = 0.14f))
+    ) {
+        Text(
+            text = text,
+            fontFamily = SpecMono,
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 3.sp,
+            color = CinemaTheme.GoldBright,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun CloseButton(onDismiss: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(30.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onDismiss() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Schließen",
+            tint = CinemaTheme.ParchmentDim,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun GoldRule() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(CinemaTheme.Hairline, CinemaTheme.Gold.copy(alpha = 0.5f), CinemaTheme.Hairline)
+                )
+            )
+    )
+}
+
+@Composable
+private fun FieldLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        fontFamily = SpecMono,
+        fontWeight = FontWeight.Bold,
+        fontSize = 10.sp,
+        letterSpacing = 2.5.sp,
+        color = CinemaTheme.Gold
+    )
+}
+
+@Composable
+private fun ListChip(text: String) {
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = CinemaTheme.Gold.copy(alpha = 0.10f),
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+    ) {
+        Text(
+            text = text,
+            fontFamily = SpecMono,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
+            color = CinemaTheme.GoldBright,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+        )
+    }
+}
+
+// Datenblatt-Zeile: Label · gepunkteter Leader · Wert (mono)
+@Composable
+private fun SpecRow(label: String, value: String?, loading: Boolean) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontFamily = SpecMono,
+            fontSize = 13.sp,
+            color = CinemaTheme.ParchmentDim
+        )
+        // Gepunkteter Leader füllt den Raum – Datenblatt-Optik
+        Text(
+            text = " " + "·".repeat(40) + " ",
+            fontFamily = SpecMono,
+            fontSize = 13.sp,
+            color = CinemaTheme.Hairline,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            modifier = Modifier.weight(1f)
+        )
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(15.dp),
+                strokeWidth = 2.dp,
+                color = CinemaTheme.Gold
+            )
+        } else {
+            Text(
+                text = value ?: "—",
+                fontFamily = SpecMono,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                fontStyle = if (value == null) FontStyle.Italic else FontStyle.Normal,
+                color = if (value == null) CinemaTheme.ParchmentDim else CinemaTheme.GoldBright
+            )
+        }
+    }
+}
+
+// "2008-01-20" → "20.01.2008"; nur Jahr oder leer → Rohwert/null
 private fun formatReleaseDate(raw: String): String? {
     if (raw.isBlank()) return null
     return runCatching {
