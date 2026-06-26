@@ -263,6 +263,18 @@ fun MediaDetailDialog(
                                         detailState is DetailState.Loading)
                                 }
                                 SpecRow("Released", formatReleaseDate(movie.date), false)
+
+                                // "Fertig geschaut"-Datum (nur aus Recently Watched).
+                                // Gespeichert als "finished: …" (Serie) bzw.
+                                // "watched: …" (Film) im Format dd.MM.yyyy.
+                                val finishedDisplay = movie.finishedDate
+                                    ?.replace("finished: ", "")
+                                    ?.replace("watched: ", "")
+                                    ?.trim()
+                                    ?.takeIf { it.isNotBlank() }
+                                if (finishedDisplay != null) {
+                                    SpecRow("Finished", finishedDisplay, false)
+                                }
                             }
                         }
 
