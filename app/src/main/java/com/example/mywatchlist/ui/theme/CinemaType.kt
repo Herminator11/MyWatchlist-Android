@@ -3,24 +3,30 @@ package com.example.mywatchlist.ui.theme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.example.mywatchlist.R
 
 // ─────────────────────────────────────────────────────────────
-// CINEMA AESTHETIC – Schrift- & Farbtokens für das Detail-Popup
+// CINEMA AESTHETIC – Schrift- & Farbtokens
 //
-// Konzept: "Vintage-Kinoplakat trifft technisches Datenblatt".
-// Ein dramatischer Display-Serif (DM Serif Display) für Titel,
+// Konzept: "Filmplakat / Ticket trifft technisches Datenblatt".
+// Eine hohe, kondensierte Versal-Display (Bebas Neue) für Titel,
 // dazu eine Monospace (Space Mono) für die Metadaten-Anzeige –
 // wie ein Ticket-Stub / Filmstreifen-Datenblatt.
 // ─────────────────────────────────────────────────────────────
 
-// Display-Serif – hoher Kontrast, theatralisch, plakativ
-val DisplaySerif = FontFamily(
-    Font(R.font.dm_serif_display_regular, FontWeight.Normal),
-    Font(R.font.dm_serif_display_italic, FontWeight.Normal, FontStyle.Italic)
+// Display – Bebas Neue: hohe, kondensierte Versalien, plakativ.
+// Einzelschnitt → alle genutzten Gewichte zeigen denselben Schnitt
+// (verhindert künstliches Fett/Synthese).
+val DisplayFont = FontFamily(
+    Font(R.font.bebas_neue_regular, FontWeight.Normal),
+    Font(R.font.bebas_neue_regular, FontWeight.Medium),
+    Font(R.font.bebas_neue_regular, FontWeight.SemiBold),
+    Font(R.font.bebas_neue_regular, FontWeight.Bold)
 )
+
+// Rückwärtskompatibler Alias (frühere Referenzen nutzten DisplaySerif)
+val DisplaySerif = DisplayFont
 
 // Monospace – technisches "Spec-Sheet"-Gefühl für Zahlen & Labels
 val SpecMono = FontFamily(
