@@ -57,6 +57,9 @@
     <string name="search_discover_3">⭐  Add to lists &amp; manage</string>
     <string name="snackbar_added_to_watchlist">“%1$s” → Want to Watch</string>
     <string name="snackbar_deleted">“%1$s” deleted</string>
+    <string name="wtw_search_open">Search titles to add</string>
+    <string name="wtw_search_title">Add to Watchlist</string>
+    <string name="wtw_search_added">Added to Want to Watch</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
