@@ -30,8 +30,8 @@ android {
         //   PATCH (z): abwärtskompatible Bugfixes        -> nur bei reinen Fehlerbehebungen.
         // versionCode muss bei JEDEM Store-Release monoton steigen (einfach +1).
         // Die UI (SettingsScreen) liest BuildConfig.VERSION_NAME – hier ist die einzige Stelle zum Pflegen.
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
