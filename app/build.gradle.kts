@@ -24,8 +24,14 @@ android {
         applicationId = "com.example.mywatchlist"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // App-Version – zentrale Quelle der Wahrheit (Semantic Versioning: MAJOR.MINOR.PATCH).
+        //   MAJOR (x): inkompatible/grundlegende Änderungen.
+        //   MINOR (y): neue, abwärtskompatible Features  -> bei jedem Feature-Release erhöhen.
+        //   PATCH (z): abwärtskompatible Bugfixes        -> nur bei reinen Fehlerbehebungen.
+        // versionCode muss bei JEDEM Store-Release monoton steigen (einfach +1).
+        // Die UI (SettingsScreen) liest BuildConfig.VERSION_NAME – hier ist die einzige Stelle zum Pflegen.
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
