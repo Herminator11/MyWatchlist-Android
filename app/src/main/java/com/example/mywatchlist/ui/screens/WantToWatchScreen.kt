@@ -147,20 +147,19 @@ fun WantToWatchScreen(
         }
       }
 
-        // Kompakter "+"-Button, schwebt unten rechts über der Floating Nav-Bar.
-        // bottom = 132.dp hält ihn frei über der ~120.dp hohen Nav-Leiste.
-        SmallFloatingActionButton(
+        // "+"-Button, schwebt unten rechts knapp über der Floating Nav-Bar.
+        FloatingActionButton(
             onClick = { showSearch = true },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 132.dp),
+                .padding(end = 20.dp, bottom = 104.dp),
             containerColor = AppTheme.YellowAccent,
             contentColor = Color.Black
         ) {
             Text(
                 text = "+",
                 fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
+                fontSize = 30.sp
             )
         }
     }
