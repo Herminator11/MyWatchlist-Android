@@ -23,9 +23,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import com.example.mywatchlist.utils.parseSortDate
-import com.example.mywatchlist.utils.buildExportContent
 import com.example.mywatchlist.utils.currentExportTimestamp
 import com.example.mywatchlist.utils.ExportEntry
+import com.example.mywatchlist.utils.ExportSection
+import com.example.mywatchlist.utils.buildListExportContent
 
 enum class WatchListType(@androidx.annotation.StringRes val labelRes: Int) {
     WANT_TO_WATCH(com.example.mywatchlist.R.string.list_want_to_watch),
@@ -34,6 +35,20 @@ enum class WatchListType(@androidx.annotation.StringRes val labelRes: Int) {
     RECENTLY_WATCHED_MOVIES(com.example.mywatchlist.R.string.list_recently_watched_movies),
     FAVORITE_MOVIES(com.example.mywatchlist.R.string.list_favorite_movies),
     FAVORITE_SERIES(com.example.mywatchlist.R.string.list_favorite_series)
+}
+
+/**
+ * Exportierbare Listen für den Settings-Export. Jeder Eintrag kennt sein
+ * UI-Label (für Auswahl-Reihen) und seinen Dateinamens-Stamm.
+ */
+enum class ExportList(
+    @androidx.annotation.StringRes val labelRes: Int,
+    val fileStem: String
+) {
+    WANT_TO_WATCH(com.example.mywatchlist.R.string.list_want_to_watch, "want_to_watch"),
+    FAVORITE_SERIES(com.example.mywatchlist.R.string.list_favorite_series, "favorite_series"),
+    FAVORITE_MOVIES(com.example.mywatchlist.R.string.list_favorite_movies, "favorite_movies"),
+    RECENTLY_WATCHED(com.example.mywatchlist.R.string.list_recently_watched, "recently_watched")
 }
 
 class LibraryViewModel(
@@ -371,27 +386,66 @@ class LibraryViewModel(
     // recentlyWatchedTv und recentlyWatchedMovies StateFlows.
     // Gibt den Dateipfad zurück – null wenn beide Listen leer sind.
 
-    fun buildExportFile(context: android.content.Context): java.io.File? {
-        val tvList = recentlyWatchedTv.value
-        val movieList = recentlyWatchedMovies.value
+    // ── Flexibler Listen-Export ───────────────────────────────
+    // Welche listType-Werte zu welcher exportierbaren Liste gehören.
+    private fun listTypesFor(list: ExportList): Set<String> = when (list) {
+        ExportList.WANT_TO_WATCH   -> setOf(WatchListType.WANT_TO_WATCH.name)
+        ExportList.FAVORITE_SERIES -> setOf(WatchListType.FAVORITE_SERIES.name)
+        ExportList.FAVORITE_MOVIES -> setOf(WatchListType.FAVORITE_MOVIES.name)
+        ExportList.RECENTLY_WATCHED -> setOf(
+            WatchListType.RECENTLY_WATCHED_TV.name,
+            WatchListType.RECENTLY_WATCHED_MOVIES.name
+        )
+    }
 
-        if (tvList.isEmpty() && movieList.isEmpty()) return null
+    // Einträge einer exportierbaren Liste – direkt aus dem global-hot
+    // allMoviesState (Eagerly) gefiltert. Wichtig: NICHT aus den
+    // gefilterten Screen-Flows lesen, denn die sind Lazily und liefern
+    // ohne aktiven Collector ihren Initialwert (leere Liste) – genau das
+    // ließ "Recently Watched" im Export-Screen leer erscheinen.
+    private fun entriesFor(list: ExportList): List<MovieEntity> {
+        val types = listTypesFor(list)
+        return allMoviesState.value.filter { it.listType in types }
+    }
 
-        val content = buildExportContent(
-            tvList = tvList.map {
-                ExportEntry(it.title, it.seasonNumber, it.finishedDate, it.date)
-            },
-            movieList = movieList.map {
-                ExportEntry(it.title, it.seasonNumber, it.finishedDate, it.date)
-            },
+    /**
+     * Anzahl Einträge je exportierbarer Liste – reaktiv aus allMoviesState,
+     * damit die Settings-Reihen automatisch aktivieren/deaktivieren.
+     */
+    val exportCountsState: StateFlow<Map<ExportList, Int>> =
+        allMoviesState
+            .map { movies ->
+                ExportList.values().associateWith { list ->
+                    val types = listTypesFor(list)
+                    movies.count { it.listType in types }
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
+
+    /**
+     * Baut den .txt-Inhalt für die ausgewählten Listen. Gibt null zurück,
+     * wenn keine der gewählten Listen Einträge enthält (→ "nichts zu
+     * exportieren"). Reihenfolge folgt der Enum-Deklaration.
+     */
+    fun buildExportText(context: android.content.Context, selection: Set<ExportList>): String? {
+        val sections = ExportList.values()
+            .filter { it in selection }
+            .map { list ->
+                ExportSection(
+                    name = context.getString(list.labelRes),
+                    entries = entriesFor(list).map {
+                        ExportEntry(it.title, it.seasonNumber, it.finishedDate, it.date)
+                    }
+                )
+            }
+
+        if (sections.all { it.entries.isEmpty() }) return null
+
+        return buildListExportContent(
+            documentTitle = context.getString(com.example.mywatchlist.R.string.export_doc_title),
+            sections = sections,
             exportDate = currentExportTimestamp()
         )
-
-        // Datei in Cache schreiben
-        val exportDir = java.io.File(context.cacheDir, "exports").also { it.mkdirs() }
-        val file = java.io.File(exportDir, "mywatchlist_history.txt")
-        file.writeText(content)
-        return file
     }
 
     companion object {

@@ -70,6 +70,16 @@
     <string name="settings_version">MyWatchlist · Version %1$s</string>
     <string name="export_subject">MyWatchlist History Export</string>
     <string name="export_chooser">Share history</string>
+    <!-- Flexible per-list export (SAF) -->
+    <string name="settings_export_lists">Export lists</string>
+    <string name="settings_export_row_desc">Save as .txt</string>
+    <string name="settings_export_count">%1$d entries</string>
+    <string name="settings_export_all">Export all lists</string>
+    <string name="settings_export_all_desc">One .txt file with every list</string>
+    <string name="export_doc_title">MyWatchlist Export</string>
+    <string name="export_saved">List exported</string>
+    <string name="export_failed">Could not save file</string>
+    <string name="export_nothing">Nothing to export</string>
 
     <!-- Move / date sheets -->
     <string name="move_to_watching_question">Move this series to “Currently Watching”?</string>

@@ -178,9 +178,6 @@ fun MainScreenApp() {
     val settingsViewModel: SettingsViewModel = viewModel()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsState()
-    val recentlyWatchedTv by libraryViewModel.recentlyWatchedTv.collectAsState()
-    val recentlyWatchedMovies by libraryViewModel.recentlyWatchedMovies.collectAsState()
-    val historyIsEmpty = recentlyWatchedTv.isEmpty() && recentlyWatchedMovies.isEmpty()
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -194,37 +191,15 @@ fun MainScreenApp() {
             )
         }
         composable(ROUTE_SETTINGS) {
+            // Export-Zähler reaktiv aus den gefilterten StateFlows
+            val exportCounts by libraryViewModel.exportCountsState.collectAsState()
             SettingsScreen(
                 onBack = { rootNavController.popBackStack() },
                 autoHideNavBar = autoHideNavBar,
                 onAutoHideNavBarChanged = { settingsViewModel.setAutoHideNavBar(it) },
-                historyIsEmpty = historyIsEmpty,
-                onExportHistory = {
-                    val file = libraryViewModel.buildExportFile(context)
-                    if (file != null) {
-                        val uri = androidx.core.content.FileProvider.getUriForFile(
-                            context,
-                            "${context.packageName}.fileprovider",
-                            file
-                        )
-                        val shareIntent = android.content.Intent(
-                            android.content.Intent.ACTION_SEND
-                        ).apply {
-                            type = "text/plain"
-                            putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                            putExtra(
-                                android.content.Intent.EXTRA_SUBJECT,
-                                context.getString(R.string.export_subject)
-                            )
-                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        context.startActivity(
-                            android.content.Intent.createChooser(
-                                shareIntent,
-                                context.getString(R.string.export_chooser)
-                            )
-                        )
-                    }
+                exportCounts = exportCounts,
+                onBuildExportText = { selection ->
+                    libraryViewModel.buildExportText(context, selection)
                 }
             )
         }

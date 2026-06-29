@@ -95,6 +95,60 @@ internal fun buildExportContent(
 }
 
 /**
+ * Ein benannter Abschnitt im flexiblen Listen-Export (z.B. "Want to Watch").
+ */
+data class ExportSection(val name: String, val entries: List<ExportEntry>)
+
+/**
+ * Generischer .txt-Export für beliebige Listen (Want to Watch, Favoriten …).
+ * Reine Funktion ohne Context/File-I/O – die eigentliche Datei wird über SAF
+ * geschrieben (siehe SettingsScreen). Jeder Abschnitt wird alphabetisch
+ * sortiert, mit Jahr (aus dem Erscheinungsdatum), optionaler Staffel und
+ * – falls vorhanden – persönlichem Seh-Datum aufgelistet.
+ *
+ * @param documentTitle Kopfzeile der Datei.
+ * @param sections Liste der zu exportierenden Abschnitte (Name + Einträge).
+ * @param exportDate vorformatierter Zeitstempel (siehe currentExportTimestamp()).
+ */
+internal fun buildListExportContent(
+    documentTitle: String,
+    sections: List<ExportSection>,
+    exportDate: String
+): String {
+    val sb = StringBuilder()
+
+    sb.appendLine(documentTitle)
+    sb.appendLine("Exported: $exportDate")
+    sb.appendLine("═".repeat(40))
+
+    sections.forEach { section ->
+        sb.appendLine()
+        sb.appendLine("${section.name.uppercase()} (${section.entries.size})")
+        sb.appendLine("─".repeat(40))
+
+        if (section.entries.isEmpty()) {
+            sb.appendLine("  (empty)")
+        } else {
+            section.entries
+                .sortedBy { it.title.lowercase() }
+                .forEach { entry ->
+                    val year = YEAR_REGEX.find(entry.date)?.value?.let { " ($it)" } ?: ""
+                    val season = if (entry.seasonNumber.isNotBlank())
+                        " – ${entry.seasonNumber}" else ""
+                    val watched = entry.finishedDate
+                        ?.replace("finished: ", "")
+                        ?.replace("watched: ", "")
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { "  [$it]" } ?: ""
+                    sb.appendLine("  • ${entry.title}$year$season$watched")
+                }
+        }
+    }
+
+    return sb.toString()
+}
+
+/**
  * Aktueller Zeitstempel für den Export-Header, Format dd.MM.yyyy HH:mm.
  */
 internal fun currentExportTimestamp(): String =

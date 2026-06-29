@@ -2,6 +2,9 @@ package com.example.mywatchlist.ui.screens
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,18 +12,25 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.LibraryAddCheck
 import androidx.compose.material.icons.filled.ViewDay
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mywatchlist.ui.theme.AppTheme
+import com.example.mywatchlist.ui.viewmodel.ExportList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,9 +38,44 @@ fun SettingsScreen(
     onBack: () -> Unit,
     autoHideNavBar: Boolean,
     onAutoHideNavBarChanged: (Boolean) -> Unit,
-    onExportHistory: () -> Unit,
-    historyIsEmpty: Boolean
+    exportCounts: Map<ExportList, Int>,
+    onBuildExportText: (Set<ExportList>) -> String?
 ) {
+    val context = LocalContext.current
+
+    // Inhalt der noch zu schreibenden Datei (steht erst nach SAF-Auswahl fest)
+    var pendingExport by remember { mutableStateOf<String?>(null) }
+
+    // Storage Access Framework: User wählt Speicherort + Dateiname selbst.
+    val createDocument = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        val text = pendingExport
+        pendingExport = null
+        // uri == null → User hat den Dialog abgebrochen (kein Fehler).
+        if (uri == null || text == null) return@rememberLauncherForActivityResult
+        try {
+            context.contentResolver.openOutputStream(uri)?.use { out ->
+                out.write(text.toByteArray())
+            } ?: throw java.io.IOException("openOutputStream returned null")
+            Toast.makeText(context, context.getString(R.string.export_saved), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(context, context.getString(R.string.export_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Baut den Text, prüft auf Leere und startet den SAF-Dialog.
+    fun startExport(selection: Set<ExportList>, fileName: String) {
+        val text = onBuildExportText(selection)
+        if (text == null) {
+            Toast.makeText(context, context.getString(R.string.export_nothing), Toast.LENGTH_SHORT).show()
+            return
+        }
+        pendingExport = text
+        createDocument.launch(fileName)
+    }
+
+    val totalEntries = exportCounts.values.sum()
     Scaffold(
         containerColor = AppTheme.DarkBg,
         topBar = {
@@ -95,21 +140,53 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // ── SEKTION: DATEN ────────────────────────────────
-            SettingsSectionHeader(stringResource(R.string.settings_section_data))
+            SettingsSectionHeader(stringResource(R.string.settings_export_lists))
 
             SettingsCard {
+                // Eine Export-Reihe pro Liste (deaktiviert, wenn leer).
+                ExportList.values().forEachIndexed { index, list ->
+                    val count = exportCounts[list] ?: 0
+                    val isEmpty = count == 0
+                    SettingsRow(
+                        icon = Icons.Filled.FileDownload,
+                        title = stringResource(list.labelRes),
+                        subtitle = if (isEmpty) stringResource(R.string.settings_export_empty)
+                        else stringResource(R.string.settings_export_count, count),
+                        enabled = !isEmpty,
+                        onClick = { startExport(setOf(list), "mywatchlist_${list.fileStem}.txt") },
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.Filled.ChevronRight,
+                                contentDescription = null,
+                                tint = if (isEmpty) AppTheme.TextTertiary.copy(alpha = 0.4f)
+                                else AppTheme.TextTertiary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    )
+                    if (index < ExportList.values().lastIndex) {
+                        HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Alles-auf-einmal-Export (eine Datei mit allen Listen).
+            SettingsCard {
                 SettingsRow(
-                    icon = Icons.Filled.FileDownload,
-                    title = stringResource(R.string.settings_export_history),
-                    subtitle = if (historyIsEmpty) stringResource(R.string.settings_export_empty)
-                    else stringResource(R.string.settings_export_desc),
-                    enabled = !historyIsEmpty,
-                    onClick = onExportHistory,
+                    icon = Icons.Filled.LibraryAddCheck,
+                    title = stringResource(R.string.settings_export_all),
+                    subtitle = stringResource(R.string.settings_export_all_desc),
+                    enabled = totalEntries > 0,
+                    onClick = {
+                        startExport(ExportList.values().toSet(), "mywatchlist_all_lists.txt")
+                    },
                     trailing = {
                         Icon(
                             imageVector = Icons.Filled.ChevronRight,
                             contentDescription = null,
-                            tint = if (historyIsEmpty) AppTheme.TextTertiary.copy(alpha = 0.4f)
+                            tint = if (totalEntries == 0) AppTheme.TextTertiary.copy(alpha = 0.4f)
                             else AppTheme.TextTertiary,
                             modifier = Modifier.size(20.dp)
                         )

@@ -106,6 +106,56 @@ class ExportUtilsTest {
         assertTrue(content.contains("Show B"))
     }
 
+    // ── Flexibler Listen-Export (buildListExportContent) ──────
+
+    @Test
+    fun given_listSections_when_buildListExportContent_then_headerSectionsAndSortedTitles() {
+        val content = buildListExportContent(
+            documentTitle = "MyWatchlist Export",
+            sections = listOf(
+                ExportSection(
+                    name = "Want to Watch",
+                    entries = listOf(
+                        ExportEntry("Zodiac", "", null, "2007-03-02"),
+                        ExportEntry("Arrival", "", null, "2016-11-11")
+                    )
+                ),
+                ExportSection(name = "Favorite Series", entries = emptyList())
+            ),
+            exportDate = "29.06.2026 12:00"
+        )
+
+        assertTrue(content.startsWith("MyWatchlist Export"))
+        assertTrue(content.contains("Exported: 29.06.2026 12:00"))
+        assertTrue(content.contains("WANT TO WATCH (2)"))
+        assertTrue("Erscheinungsjahr muss aus date stammen", content.contains("• Arrival (2016)"))
+        // alphabetisch sortiert → Arrival vor Zodiac
+        assertTrue(content.indexOf("Arrival") < content.indexOf("Zodiac"))
+        // leere Sektion wird mit Platzhalter dargestellt
+        assertTrue(content.contains("FAVORITE SERIES (0)"))
+        assertTrue(content.contains("(empty)"))
+    }
+
+    @Test
+    fun given_tvEntryWithSeasonAndWatchedDate_when_buildListExportContent_then_includesBoth() {
+        val content = buildListExportContent(
+            documentTitle = "MyWatchlist Export",
+            sections = listOf(
+                ExportSection(
+                    name = "Favorite Series",
+                    entries = listOf(
+                        ExportEntry("The Wire", "Season 1", "finished: 10.06.2026", "2002-06-02")
+                    )
+                )
+            ),
+            exportDate = "29.06.2026 12:00"
+        )
+
+        assertTrue(
+            content.contains("• The Wire (2002) – Season 1  [10.06.2026]")
+        )
+    }
+
     @Test
     fun given_currentExportTimestamp_when_called_then_matchesExpectedFormat() {
         val timestamp = currentExportTimestamp()
