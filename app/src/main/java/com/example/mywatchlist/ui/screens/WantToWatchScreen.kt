@@ -72,34 +72,16 @@ fun WantToWatchScreen(
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .cinemaBackground()
-            .blur(blurRadius)
     ) {
-        // Aktionsleiste: direkter Einstieg in die Titelsuche → "Want to Watch"
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 8.dp, top = 10.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            FilledIconButton(
-                onClick = { showSearch = true },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(R.string.wtw_search_open)
-                )
-            }
-        }
-
+      Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .blur(blurRadius)
+      ) {
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             containerColor = AppTheme.DarkSurface,
@@ -148,7 +130,8 @@ fun WantToWatchScreen(
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
+                    // bottom genug, dass der "+"-Button den letzten Eintrag nicht verdeckt
+                    contentPadding = PaddingValues(top = 16.dp, bottom = 192.dp)
                 ) {
                     item { ScreenHeader(title = stringResource(R.string.list_want_to_watch)) }
                     items(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
@@ -161,6 +144,24 @@ fun WantToWatchScreen(
                     }
                 }
             }
+        }
+      }
+
+        // Kompakter "+"-Button, schwebt unten rechts über der Floating Nav-Bar.
+        // bottom = 132.dp hält ihn frei über der ~120.dp hohen Nav-Leiste.
+        SmallFloatingActionButton(
+            onClick = { showSearch = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 132.dp),
+            containerColor = AppTheme.YellowAccent,
+            contentColor = Color.Black
+        ) {
+            Text(
+                text = "+",
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp
+            )
         }
     }
 
