@@ -4,11 +4,21 @@ import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.ui.viewmodel.*
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +49,8 @@ fun RecentlyWatchedScreen(
     val movieEntries by libraryViewModel.recentlyWatchedMovies.collectAsState()
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
+    // Lokaler Filter, um einen bereits gesehenen Titel schnell zu finden
+    var filterQuery by remember { mutableStateOf("") }
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
         label = "detail_blur"
@@ -47,6 +59,21 @@ fun RecentlyWatchedScreen(
     val tabs = listOf(stringResource(R.string.tab_series), stringResource(R.string.tab_movies))
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
+
+    // Scroll-Zustand je Tab herausgehoben, damit die Filterleiste weiß,
+    // ob die aktuell sichtbare Liste ganz oben steht.
+    val tvListState = rememberLazyListState()
+    val movieListState = rememberLazyListState()
+    val currentListState = if (pagerState.currentPage == 0) tvListState else movieListState
+    // Leiste nur zeigen, wenn man ganz oben ist – oder während gefiltert wird,
+    // damit das Feld beim Tippen nicht unter einem wegscrollt.
+    val showFilterBar by remember {
+        derivedStateOf {
+            filterQuery.isNotEmpty() ||
+                (currentListState.firstVisibleItemIndex == 0 &&
+                    currentListState.firstVisibleItemScrollOffset == 0)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -83,12 +110,31 @@ fun RecentlyWatchedScreen(
             }
         }
 
+        // Titel-Filter (nur Recently Watched) – blendet sich beim Scrollen aus
+        // und erscheint nur, wenn die Liste ganz oben steht.
+        AnimatedVisibility(
+            visible = showFilterBar,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            FilterBar(
+                query = filterQuery,
+                onQueryChange = { filterQuery = it },
+                onClear = { filterQuery = "" }
+            )
+        }
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
             // Liste kommt bereits sortiert aus dem ViewModel
-            val entries = if (page == 0) tvEntries else movieEntries
+            val allEntries = if (page == 0) tvEntries else movieEntries
+            // Lokaler Filter nach Titel (case-insensitive)
+            val entries = remember(allEntries, filterQuery) {
+                if (filterQuery.isBlank()) allEntries
+                else allEntries.filter { it.title.contains(filterQuery.trim(), ignoreCase = true) }
+            }
 
             // Gruppierung nach Jahr – findet nur noch die Jahreszahl, kein Regex mehr
             val grouped: Map<String, List<MovieEntity>> = remember(entries) {
@@ -100,10 +146,15 @@ fun RecentlyWatchedScreen(
 
             if (grouped.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.empty_history), color = AppTheme.TextSecondary)
+                    Text(
+                        text = if (filterQuery.isBlank()) stringResource(R.string.empty_history)
+                        else stringResource(R.string.recently_no_match),
+                        color = AppTheme.TextSecondary
+                    )
                 }
             } else {
                 LazyColumn(
+                    state = if (page == 0) tvListState else movieListState,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
@@ -148,6 +199,46 @@ fun RecentlyWatchedScreen(
             }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FilterBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onClear: () -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        placeholder = {
+            Text(stringResource(R.string.recently_filter_hint), color = AppTheme.TextSecondary, fontSize = 14.sp)
+        },
+        leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = null, tint = AppTheme.TextSecondary, modifier = Modifier.size(20.dp))
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_clear), tint = AppTheme.TextSecondary, modifier = Modifier.size(18.dp))
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(14.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = AppTheme.YellowAccent,
+            unfocusedBorderColor = AppTheme.TextTertiary,
+            focusedContainerColor = AppTheme.DarkSurface,
+            unfocusedContainerColor = AppTheme.DarkSurface,
+            cursorColor = AppTheme.YellowAccent,
+            focusedTextColor = AppTheme.TextPrimary,
+            unfocusedTextColor = AppTheme.TextPrimary
+        )
+    )
 }
 
 @Composable

@@ -43,6 +43,8 @@
     <string name="empty_watching">Your list is empty.\nSearch for titles to add them!</string>
     <string name="empty_history">This list is empty.</string>
     <string name="empty_favorites_category">No titles in this category.</string>
+    <string name="recently_filter_hint">Find a watched title…</string>
+    <string name="recently_no_match">No watched title matches your search.</string>
 
     <!-- Search -->
     <string name="search_title">Search</string>
