@@ -64,14 +64,16 @@ fun RecentlyWatchedScreen(
     // ob die aktuell sichtbare Liste ganz oben steht.
     val tvListState = rememberLazyListState()
     val movieListState = rememberLazyListState()
-    val currentListState = if (pagerState.currentPage == 0) tvListState else movieListState
     // Leiste nur zeigen, wenn man ganz oben ist – oder während gefiltert wird,
     // damit das Feld beim Tippen nicht unter einem wegscrollt.
+    // Die aktive Liste wird INNERHALB von derivedStateOf gewählt, damit der
+    // Tab-Wechsel (pagerState.currentPage) korrekt getrackt wird.
     val showFilterBar by remember {
         derivedStateOf {
+            val state = if (pagerState.currentPage == 0) tvListState else movieListState
             filterQuery.isNotEmpty() ||
-                (currentListState.firstVisibleItemIndex == 0 &&
-                    currentListState.firstVisibleItemScrollOffset == 0)
+                (state.firstVisibleItemIndex == 0 &&
+                    state.firstVisibleItemScrollOffset == 0)
         }
     }
 
