@@ -241,9 +241,13 @@ private fun WantToWatchSearchSheet(
     // Room-Flow zurückspielt; isFavorite deckt bereits gespeicherte ab.
     var addedIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
 
-    // Debounced Suche, identisch zum globalen Such-Screen
+    // Debounced Suche, identisch zum globalen Such-Screen.
+    // Bei leerem Feld die Ergebnisse zurücksetzen, damit keine alten
+    // Treffer stehen bleiben (auch beim Wiederöffnen des Sheets).
     LaunchedEffect(query) {
-        if (query.isNotBlank()) {
+        if (query.isBlank()) {
+            searchViewModel.performSearch("")
+        } else {
             delay(300)
             searchViewModel.performSearch(query)
         }

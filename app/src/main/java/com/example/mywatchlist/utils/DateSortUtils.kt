@@ -11,7 +11,7 @@ private val SORT_DATE_REGEX = Regex("""(\d{2})\.(\d{2})\.(\d{4})""")
  *
  * Fällt auf den Rohwert zurück, wenn kein dd.MM.yyyy-Muster gefunden wird
  * (z.B. wenn date bereits im Format yyyy-MM-dd vorliegt – dieses Format
- * ist bereits lexikografisch korrekt sortierbar).git
+ * ist bereits lexikografisch korrekt sortierbar).
  *
  * TP-3: Extrahiert aus LibraryViewModel.parseSortDate(), damit reine
  * JVM-Unit-Tests ohne Emulator möglich sind (kein MovieEntity/Room nötig).
