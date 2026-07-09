@@ -75,10 +75,11 @@ class ErrorHandlingTest {
             newEntries: List<MovieEntity>,
             updateFavoriteId: Int?,
             newFavoriteStatus: Boolean?,
-            removeFavListType: String?
+            removeFavListType: String?,
+            favoriteMediaType: String?
         ) {
             if (throwOnTransaction) throw RuntimeException("Simulierter DB-Fehler: Transaction")
-            db.movieDao().editCardTransaction(oldId, oldListType, oldSeason, newEntries, updateFavoriteId, newFavoriteStatus, removeFavListType)
+            db.movieDao().editCardTransaction(oldId, oldListType, oldSeason, newEntries, updateFavoriteId, newFavoriteStatus, removeFavListType, favoriteMediaType)
         }
 
         override fun getAllMoviesFlow(): Flow<List<MovieEntity>> = flowOf(emptyList())

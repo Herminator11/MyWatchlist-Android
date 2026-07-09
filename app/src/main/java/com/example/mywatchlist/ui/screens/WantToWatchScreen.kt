@@ -346,7 +346,7 @@ private fun WantToWatchSearchSheet(
                             searchViewModel.searchResults,
                             key = { it.id.toString() + (it.mediaType ?: "") }
                         ) { movie ->
-                            val saved = movie.id in addedIds || libraryViewModel.isFavorite(movie.id)
+                            val saved = movie.id in addedIds || libraryViewModel.isFavorite(movie.id, movie.mediaType ?: "movie")
                             SearchAddRow(
                                 movie = movie,
                                 alreadySaved = saved,

@@ -329,7 +329,7 @@ private fun ResultsList(
             )
         }
         items(results, key = { it.id.toString() + (it.mediaType ?: "") }) { movie ->
-            val alreadySaved = libraryViewModel.isFavorite(movie.id)
+            val alreadySaved = libraryViewModel.isFavorite(movie.id, movie.mediaType ?: "movie")
             SwipeToAdd(onAdd = { onQuickAdd(movie) }) {
                 SearchResultCard(
                     movie = movie,
