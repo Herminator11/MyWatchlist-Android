@@ -43,6 +43,7 @@ import coil.compose.AsyncImage
 import com.example.mywatchlist.data.remote.TmdbMovie
 import com.example.mywatchlist.ui.components.cards.UniversalMediaCard
 import com.example.mywatchlist.ui.components.common.ScreenHeader
+import com.example.mywatchlist.ui.components.common.SeasonPicker
 import com.example.mywatchlist.ui.components.sheets.GlobalEditSheet
 import com.example.mywatchlist.ui.components.sheets.MediaDetailDialog
 import com.example.mywatchlist.ui.theme.AppTheme
@@ -240,6 +241,8 @@ private fun WantToWatchSearchSheet(
     // Lokal hinzugefügte IDs → sofortiges Feedback (Häkchen), bevor der
     // Room-Flow zurückspielt; isFavorite deckt bereits gespeicherte ab.
     var addedIds by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    // Serie, für die gerade eine Staffel abgefragt wird (null = kein Dialog).
+    var seasonForMovie by remember { mutableStateOf<TmdbMovie?>(null) }
 
     // Debounced Suche, identisch zum globalen Such-Screen.
     // Bei leerem Feld die Ergebnisse zurücksetzen, damit keine alten
@@ -351,8 +354,14 @@ private fun WantToWatchSearchSheet(
                                 movie = movie,
                                 alreadySaved = saved,
                                 onAdd = {
-                                    libraryViewModel.addNewCard(movie, WatchListType.WANT_TO_WATCH)
-                                    addedIds = addedIds + movie.id
+                                    // Serien fragen erst nach der Staffel, Filme werden direkt
+                                    // hinzugefügt (analog zum globalen Such-Screen).
+                                    if ((movie.mediaType ?: "movie") == "tv") {
+                                        seasonForMovie = movie
+                                    } else {
+                                        libraryViewModel.addNewCard(movie, WatchListType.WANT_TO_WATCH)
+                                        addedIds = addedIds + movie.id
+                                    }
                                 }
                             )
                         }
@@ -362,10 +371,93 @@ private fun WantToWatchSearchSheet(
         }
     }
 
+    // Staffel-Abfrage für Serien. Als Dialog (nicht als zweites Bottom-Sheet)
+    // umgesetzt, damit er sich sauber über das offene Such-Sheet legt.
+    seasonForMovie?.let { movie ->
+        WantToWatchSeasonDialog(
+            movie = movie,
+            onConfirm = { season ->
+                libraryViewModel.addNewCard(
+                    movie = movie,
+                    listType = WatchListType.WANT_TO_WATCH,
+                    seasonNumber = season
+                )
+                addedIds = addedIds + movie.id
+                seasonForMovie = null
+            },
+            onDismiss = { seasonForMovie = null }
+        )
+    }
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
         keyboardController?.show()
     }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Dialog: Staffel wählen, dann Serie in "Want to Watch"
+// Das Staffel-Feld ist optional – leer = Titel ohne Staffel.
+// ─────────────────────────────────────────────────────────────
+@Composable
+private fun WantToWatchSeasonDialog(
+    movie: TmdbMovie,
+    onConfirm: (season: String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var season by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = AppTheme.DarkSurface,
+        title = {
+            Text(
+                text = movie.displayTitle,
+                color = AppTheme.TextPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(R.string.wtw_season_question),
+                    color = AppTheme.TextSecondary,
+                    fontSize = 13.sp
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+                SeasonPicker(
+                    seasonNumber = season,
+                    onSeasonChange = { season = it }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.wtw_season_hint_optional),
+                    color = AppTheme.TextTertiary,
+                    fontSize = 12.sp
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(season.trim()) }) {
+                Text(
+                    text = stringResource(R.string.action_add),
+                    color = AppTheme.YellowAccent,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.action_cancel),
+                    color = AppTheme.TextSecondary
+                )
+            }
+        }
+    )
 }
 
 @Composable

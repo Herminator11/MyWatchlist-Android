@@ -61,6 +61,8 @@
     <string name="snackbar_deleted">“%1$s” deleted</string>
     <string name="wtw_search_title">Add to Watchlist</string>
     <string name="wtw_search_added">Added to Want to Watch</string>
+    <string name="wtw_season_question">Which season do you want to watch?</string>
+    <string name="wtw_season_hint_optional">Leave empty to add without a season.</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
