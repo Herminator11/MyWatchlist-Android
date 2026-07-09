@@ -142,9 +142,12 @@ class LibraryViewModel(
         _error.value = null
     }
 
+    // Identität = id + mediaType. TMDB vergibt IDs nur je Medientyp eindeutig,
+    // deshalb darf hier nicht allein nach id gefiltert werden – sonst zeigt eine
+    // Film-Karte die Listen einer gleich-nummerierten Serie (und umgekehrt).
     fun getListsForMovie(movie: TmdbMovie): Set<WatchListType> {
         return allMoviesState.value
-            .filter { it.id == movie.id }
+            .filter { it.id == movie.id && it.mediaType == movie.mediaType }
             .mapNotNull { entity ->
                 try { WatchListType.valueOf(entity.listType) } catch (e: Exception) { null }
             }
@@ -155,8 +158,15 @@ class LibraryViewModel(
         return getListsForMovie(entity.toTmdbMovie())
     }
 
-    fun isFavorite(movieId: Int): Boolean {
-        return allMoviesState.value.any { it.id == movieId && it.isFavorite }
+    // Einzige Wahrheit für "ist Favorit": die Mitgliedschaft in einer der
+    // FAVORITE_*-Listen – NICHT das denormalisierte isFavorite-Flag, das auf
+    // manchen Schreibpfaden veralten kann. Zusätzlich mediaType-scoped.
+    fun isFavorite(movieId: Int, mediaType: String): Boolean {
+        return allMoviesState.value.any {
+            it.id == movieId && it.mediaType == mediaType &&
+                (it.listType == WatchListType.FAVORITE_SERIES.name ||
+                    it.listType == WatchListType.FAVORITE_MOVIES.name)
+        }
     }
 
     // ── KERN: Einzelne Karte hinzufügen ───────────────────────
@@ -173,17 +183,22 @@ class LibraryViewModel(
                 val isTvList = listType == WatchListType.CURRENTLY_WATCHING ||
                         listType == WatchListType.RECENTLY_WATCHED_TV ||
                         listType == WatchListType.WANT_TO_WATCH
+                val mediaType = movie.mediaType ?: "movie"
+                val addingToFavorites = listType == WatchListType.FAVORITE_SERIES ||
+                        listType == WatchListType.FAVORITE_MOVIES
                 val entity = MovieEntity(
                     id = movie.id,
                     title = movie.displayTitle,
                     date = movie.displayDate,
                     posterPath = movie.posterPath,
-                    mediaType = movie.mediaType ?: "movie",
+                    mediaType = mediaType,
                     listType = listType.name,
                     seasonNumber = if (isTvList) seasonNumber else "",
                     finishedDate = finishedDate,
                     favoriteCategory = favoriteCategory,
-                    isFavorite = isFavorite(movie.id),
+                    // Flag spiegelt die Favoriten-Mitgliedschaft (id + mediaType);
+                    // beim Anlegen einer Favoritenzeile selbst direkt true.
+                    isFavorite = addingToFavorites || isFavorite(movie.id, mediaType),
                     notes = notes
                 )
                 movieDao.insertOrUpdateMovie(entity)
@@ -301,7 +316,8 @@ class LibraryViewModel(
                     newEntries = newEntries,
                     updateFavoriteId = if (isFavorite != movie.isFavorite) movie.id else null,
                     newFavoriteStatus = if (isFavorite != movie.isFavorite) isFavorite else null,
-                    removeFavListType = removeFavListType  // ← NEU
+                    removeFavListType = removeFavListType,  // ← NEU
+                    favoriteMediaType = if (isFavorite != movie.isFavorite) movie.mediaType else null
                 )
         }
     }
@@ -321,7 +337,7 @@ class LibraryViewModel(
                 else
                     WatchListType.FAVORITE_MOVIES.name
                 movieDao.removeMovieFromList(movie.id, favoriteListType)
-                movieDao.updateFavoriteStatus(movie.id, false)
+                movieDao.updateFavoriteStatus(movie.id, movie.mediaType, false)
         }
     }
 

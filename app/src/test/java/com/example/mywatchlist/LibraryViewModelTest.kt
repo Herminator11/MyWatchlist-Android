@@ -322,7 +322,7 @@ class LibraryViewModelTest {
     fun `editCard loescht nur spezifische Staffel nicht alle Eintraege dieser ID`() = runTest {
         whenever(movieDao.removeSeasonFromList(any(), any(), any())).thenReturn(1)
         whenever(movieDao.insertOrUpdateMovie(any())).thenReturn(1L)
-        whenever(movieDao.updateFavoriteStatus(any(), any())).thenReturn(1)
+        whenever(movieDao.updateFavoriteStatus(any(), any(), any())).thenReturn(1)
 
         val movie = movieEntity(
             id = 95396,

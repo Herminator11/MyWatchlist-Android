@@ -39,7 +39,10 @@ interface MovieDao {
         newEntries: List<MovieEntity>,
         updateFavoriteId: Int? = null,
         newFavoriteStatus: Boolean? = null,
-        removeFavListType: String? = null
+        removeFavListType: String? = null,
+        // mediaType grenzt das isFavorite-Update auf denselben Medientyp ein –
+        // ohne ihn würde ein Film und eine Serie mit gleicher TMDB-ID kollidieren.
+        favoriteMediaType: String? = null
     ) {
         removeSeasonFromList(oldId, oldListType, oldSeason)
 
@@ -48,8 +51,8 @@ interface MovieDao {
             removeMovieFromList(oldId, removeFavListType)
         }
 
-        if (updateFavoriteId != null && newFavoriteStatus != null) {
-            updateFavoriteStatus(updateFavoriteId, newFavoriteStatus)
+        if (updateFavoriteId != null && newFavoriteStatus != null && favoriteMediaType != null) {
+            updateFavoriteStatus(updateFavoriteId, favoriteMediaType, newFavoriteStatus)
         }
 
         insertOrUpdateAll(newEntries)
@@ -67,8 +70,11 @@ interface MovieDao {
     @Query("DELETE FROM movies_table WHERE id = :movieId AND listType = :listType AND seasonNumber = :seasonNumber")
     suspend fun removeSeasonFromList(movieId: Int, listType: String, seasonNumber: String?): Int
 
-    @Query("UPDATE movies_table SET isFavorite = :isFavorite WHERE id = :movieId")
-    suspend fun updateFavoriteStatus(movieId: Int, isFavorite: Boolean): Int
+    // mediaType MUSS in der WHERE-Klausel stehen: TMDB-IDs sind nur je
+    // Medientyp eindeutig – ohne mediaType würde ein gleich-nummerierter
+    // Film gleichzeitig mit umgeschaltet.
+    @Query("UPDATE movies_table SET isFavorite = :isFavorite WHERE id = :movieId AND mediaType = :mediaType")
+    suspend fun updateFavoriteStatus(movieId: Int, mediaType: String, isFavorite: Boolean): Int
 
     @Query("UPDATE movies_table SET notes = :notes WHERE id = :movieId AND listType = :listType AND seasonNumber = :seasonNumber")
     suspend fun updateNotes(movieId: Int, listType: String, seasonNumber: String?, notes: String?): Int
