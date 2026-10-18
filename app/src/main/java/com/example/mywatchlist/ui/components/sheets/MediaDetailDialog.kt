@@ -86,7 +86,9 @@ private sealed interface DetailState {
         val seasons: Int?,
         val episodes: Int?,
         val genres: List<String>,
-        val originalTitle: String?
+        val originalTitle: String?,
+        // (Staffelnummer, Folgenzahl), ohne Specials (Staffel 0)
+        val seasonList: List<Pair<Int, Int>>
     ) : DetailState
     data class Movie(
         val runtimeMinutes: Int?,
@@ -129,7 +131,11 @@ fun MediaDetailDialog(
                     seasons = d.numberOfSeasons,
                     episodes = d.numberOfEpisodes,
                     genres = d.genres.orEmpty().map { it.name },
-                    originalTitle = d.originalName
+                    originalTitle = d.originalName,
+                    seasonList = d.seasons.orEmpty()
+                        .filter { it.seasonNumber > 0 }
+                        .sortedBy { it.seasonNumber }
+                        .map { it.seasonNumber to (it.episodeCount ?: 0) }
                 )
             } else {
                 val d = MovieApi.service.getMovieDetails(movie.id)
@@ -349,6 +355,13 @@ fun MediaDetailDialog(
                                         detailState is DetailState.Loading)
                                     SpecRow(stringResource(R.string.spec_episodes), tv?.episodes?.toString(),
                                         detailState is DetailState.Loading)
+                                    // Folgen pro Staffel
+                                    tv?.seasonList?.forEach { (number, count) ->
+                                        SeasonRow(
+                                            label = stringResource(R.string.detail_season_row, number),
+                                            value = stringResource(R.string.detail_episodes_count, count)
+                                        )
+                                    }
                                 } else {
                                     val mv = detailState as? DetailState.Movie
                                     SpecRow(stringResource(R.string.spec_runtime),
@@ -833,6 +846,39 @@ private fun SpecRow(label: String, value: String?, loading: Boolean) {
                 color = if (value == null) CinemaTheme.ParchmentDim else CinemaTheme.GoldBright
             )
         }
+    }
+}
+
+// Eingerückte, dezentere Zeile für eine einzelne Staffel
+@Composable
+private fun SeasonRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 14.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontFamily = SpecMono,
+            fontSize = 12.sp,
+            color = CinemaTheme.ParchmentDim
+        )
+        Text(
+            text = " " + "·".repeat(40) + " ",
+            fontFamily = SpecMono,
+            fontSize = 12.sp,
+            color = CinemaTheme.Hairline,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = value,
+            fontFamily = SpecMono,
+            fontSize = 13.sp,
+            color = CinemaTheme.Parchment
+        )
     }
 }
 

@@ -126,6 +126,8 @@
     <string name="detail_genres">Genres</string>
     <string name="spec_seasons">Seasons</string>
     <string name="spec_episodes">Episodes</string>
+    <string name="detail_season_row">Season %1$d</string>
+    <string name="detail_episodes_count">%1$d ep.</string>
     <string name="spec_runtime">Runtime</string>
     <string name="spec_runtime_value">%1$d min</string>
     <string name="spec_released">Released</string>
