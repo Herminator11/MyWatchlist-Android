@@ -80,6 +80,15 @@ import androidx.compose.ui.window.DialogProperties
 // ─────────────────────────────────────────────
 // Ladezustand der TMDB-Detaildaten
 // ─────────────────────────────────────────────
+private data class CastLine(val name: String, val character: String?)
+
+private fun Credits?.toCastLines(): List<CastLine> =
+    this?.cast.orEmpty()
+        .filter { !it.name.isNullOrBlank() }
+        .sortedBy { it.order ?: Int.MAX_VALUE }
+        .take(8)
+        .map { CastLine(it.name!!, it.character?.takeIf { c -> c.isNotBlank() }) }
+
 private sealed interface DetailState {
     data object Loading : DetailState
     data class Tv(
@@ -88,12 +97,16 @@ private sealed interface DetailState {
         val genres: List<String>,
         val originalTitle: String?,
         // (Staffelnummer, Folgenzahl), ohne Specials (Staffel 0)
-        val seasonList: List<Pair<Int, Int>>
+        val seasonList: List<Pair<Int, Int>>,
+        val creators: List<String>,
+        val cast: List<CastLine>
     ) : DetailState
     data class Movie(
         val runtimeMinutes: Int?,
         val genres: List<String>,
-        val originalTitle: String?
+        val originalTitle: String?,
+        val directors: List<String>,
+        val cast: List<CastLine>
     ) : DetailState
     data object Error : DetailState
 }
@@ -135,14 +148,20 @@ fun MediaDetailDialog(
                     seasonList = d.seasons.orEmpty()
                         .filter { it.seasonNumber > 0 }
                         .sortedBy { it.seasonNumber }
-                        .map { it.seasonNumber to (it.episodeCount ?: 0) }
+                        .map { it.seasonNumber to (it.episodeCount ?: 0) },
+                    creators = d.createdBy.orEmpty().mapNotNull { it.name?.takeIf { n -> n.isNotBlank() } },
+                    cast = d.credits.toCastLines()
                 )
             } else {
                 val d = MovieApi.service.getMovieDetails(movie.id)
                 DetailState.Movie(
                     runtimeMinutes = d.runtime,
                     genres = d.genres.orEmpty().map { it.name },
-                    originalTitle = d.originalTitle
+                    originalTitle = d.originalTitle,
+                    directors = d.credits?.crew.orEmpty()
+                        .filter { it.job == "Director" }
+                        .mapNotNull { it.name?.takeIf { n -> n.isNotBlank() } },
+                    cast = d.credits.toCastLines()
                 )
             }
         } catch (e: Exception) {
@@ -153,6 +172,16 @@ fun MediaDetailDialog(
     val genres = when (val d = detailState) {
         is DetailState.Tv -> d.genres
         is DetailState.Movie -> d.genres
+        else -> emptyList()
+    }
+    val cast = when (val d = detailState) {
+        is DetailState.Tv -> d.cast
+        is DetailState.Movie -> d.cast
+        else -> emptyList()
+    }
+    val crew = when (val d = detailState) {
+        is DetailState.Tv -> d.creators
+        is DetailState.Movie -> d.directors
         else -> emptyList()
     }
     // Originaltitel nur zeigen, wenn er sich vom angezeigten Titel unterscheidet.
@@ -372,10 +401,61 @@ fun MediaDetailDialog(
                             }
                         }
 
+                        // ── CAST & CREW ─────────────────────────
+                        if (crew.isNotEmpty() || cast.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            RevealItem(index = 7, revealed = revealed) {
+                                Column {
+                                    GoldRule()
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    if (crew.isNotEmpty()) {
+                                        FieldLabel(
+                                            stringResource(
+                                                if (isTv) R.string.detail_created_by else R.string.detail_directed_by
+                                            )
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = crew.joinToString(", "),
+                                            fontFamily = SpecMono,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = CinemaTheme.Parchment
+                                        )
+                                    }
+                                    if (cast.isNotEmpty()) {
+                                        if (crew.isNotEmpty()) Spacer(modifier = Modifier.height(16.dp))
+                                        FieldLabel(stringResource(R.string.detail_cast))
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        cast.forEach { line ->
+                                            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                                                Text(
+                                                    text = line.name,
+                                                    fontFamily = SpecMono,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 13.sp,
+                                                    color = CinemaTheme.Parchment
+                                                )
+                                                if (line.character != null) {
+                                                    Text(
+                                                        text = line.character,
+                                                        fontFamily = SpecMono,
+                                                        fontStyle = FontStyle.Italic,
+                                                        fontSize = 12.sp,
+                                                        color = CinemaTheme.ParchmentDim
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // ── PRIMÄRAKTION: Hinzufügen ODER Bearbeiten ──
                         if (onAdd != null || onEdit != null) {
                             Spacer(modifier = Modifier.height(20.dp))
-                            RevealItem(index = 7, revealed = revealed) {
+                            RevealItem(index = 8, revealed = revealed) {
                                 if (onAdd != null) {
                                     AddAction(onClick = onAdd)
                                 } else if (onEdit != null) {
@@ -539,7 +619,7 @@ private fun LaunchedEffectReveal(onTick: (Int) -> Unit) {
     androidx.compose.runtime.LaunchedEffect(Unit) {
         onTick(0)                 // mount (Container fade/scale)
         delay(120)
-        for (i in 1..7) {
+        for (i in 1..8) {
             onTick(i)
             delay(75)
         }
