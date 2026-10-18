@@ -15,6 +15,42 @@ val TMDB_API_KEY: String = BuildConfig.TMDB_API_KEY
 // ── Detail-Antworten (für das Detail-Popup) ───────────────────
 // search/multi liefert KEINE Staffel-/Folgenzahl – dafür braucht
 // es die dedizierten Detail-Endpunkte /tv/{id} bzw. /movie/{id}.
+data class Genre(
+    val id: Int,
+    val name: String
+)
+
+data class SeasonInfo(
+    @SerializedName("season_number")
+    val seasonNumber: Int,
+
+    @SerializedName("episode_count")
+    val episodeCount: Int?,
+
+    val name: String?
+)
+
+data class CastMember(
+    val name: String?,
+    val character: String?,
+    val order: Int?
+)
+
+data class CrewMember(
+    val name: String?,
+    val job: String?
+)
+
+// Kommt per append_to_response=credits im selben Request.
+data class Credits(
+    val cast: List<CastMember>?,
+    val crew: List<CrewMember>?
+)
+
+data class CreatedBy(
+    val name: String?
+)
+
 data class TvDetails(
     @SerializedName("number_of_seasons")
     val numberOfSeasons: Int?,
@@ -25,7 +61,19 @@ data class TvDetails(
     @SerializedName("first_air_date")
     val firstAirDate: String?,
 
-    val status: String?
+    val status: String?,
+
+    val genres: List<Genre>? = null,
+
+    @SerializedName("original_name")
+    val originalName: String? = null,
+
+    val seasons: List<SeasonInfo>? = null,
+
+    @SerializedName("created_by")
+    val createdBy: List<CreatedBy>? = null,
+
+    val credits: Credits? = null
 )
 
 data class MovieDetails(
@@ -34,7 +82,14 @@ data class MovieDetails(
     @SerializedName("release_date")
     val releaseDate: String?,
 
-    val status: String?
+    val status: String?,
+
+    val genres: List<Genre>? = null,
+
+    @SerializedName("original_title")
+    val originalTitle: String? = null,
+
+    val credits: Credits? = null
 )
 
 data class MovieSearchResponse(
@@ -97,14 +152,16 @@ interface MovieApiService {
     suspend fun getTvDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US"
+        @Query("language") language: String = "en-US",
+        @Query("append_to_response") appendToResponse: String = "credits"
     ): TvDetails
 
     @GET("movie/{id}")
     suspend fun getMovieDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US"
+        @Query("language") language: String = "en-US",
+        @Query("append_to_response") appendToResponse: String = "credits"
     ): MovieDetails
 }
 
