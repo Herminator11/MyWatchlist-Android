@@ -82,8 +82,17 @@ import androidx.compose.ui.window.DialogProperties
 // ─────────────────────────────────────────────
 private sealed interface DetailState {
     data object Loading : DetailState
-    data class Tv(val seasons: Int?, val episodes: Int?) : DetailState
-    data class Movie(val runtimeMinutes: Int?) : DetailState
+    data class Tv(
+        val seasons: Int?,
+        val episodes: Int?,
+        val genres: List<String>,
+        val originalTitle: String?
+    ) : DetailState
+    data class Movie(
+        val runtimeMinutes: Int?,
+        val genres: List<String>,
+        val originalTitle: String?
+    ) : DetailState
     data object Error : DetailState
 }
 
@@ -116,15 +125,36 @@ fun MediaDetailDialog(
         value = try {
             if (isTv) {
                 val d = MovieApi.service.getTvDetails(movie.id)
-                DetailState.Tv(d.numberOfSeasons, d.numberOfEpisodes)
+                DetailState.Tv(
+                    seasons = d.numberOfSeasons,
+                    episodes = d.numberOfEpisodes,
+                    genres = d.genres.orEmpty().map { it.name },
+                    originalTitle = d.originalName
+                )
             } else {
                 val d = MovieApi.service.getMovieDetails(movie.id)
-                DetailState.Movie(d.runtime)
+                DetailState.Movie(
+                    runtimeMinutes = d.runtime,
+                    genres = d.genres.orEmpty().map { it.name },
+                    originalTitle = d.originalTitle
+                )
             }
         } catch (e: Exception) {
             DetailState.Error
         }
     }
+
+    val genres = when (val d = detailState) {
+        is DetailState.Tv -> d.genres
+        is DetailState.Movie -> d.genres
+        else -> emptyList()
+    }
+    // Originaltitel nur zeigen, wenn er sich vom angezeigten Titel unterscheidet.
+    val originalTitle = when (val d = detailState) {
+        is DetailState.Tv -> d.originalTitle
+        is DetailState.Movie -> d.originalTitle
+        else -> null
+    }?.takeIf { it.isNotBlank() && !it.equals(movie.title, ignoreCase = true) }
 
     // ── Orchestrierter Auftritt ──────────────────────────────
     var mounted by remember { mutableStateOf(false) }
@@ -212,6 +242,18 @@ fun MediaDetailDialog(
                                                 maxLines = 3,
                                                 overflow = TextOverflow.Ellipsis
                                             )
+                                            if (originalTitle != null) {
+                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Text(
+                                                    text = originalTitle,
+                                                    fontFamily = SpecMono,
+                                                    fontStyle = FontStyle.Italic,
+                                                    fontSize = 12.sp,
+                                                    color = CinemaTheme.ParchmentDim,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
                                         }
                                         CloseButton(onDismiss)
                                     }
@@ -269,12 +311,37 @@ fun MediaDetailDialog(
                             }
                         }
 
+                        // ── GENRES ──────────────────────────────
+                        if (detailState is DetailState.Loading || genres.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            RevealItem(index = 4, revealed = revealed) {
+                                Column {
+                                    FieldLabel(stringResource(R.string.detail_genres))
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    if (detailState is DetailState.Loading) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(15.dp),
+                                            strokeWidth = 2.dp,
+                                            color = CinemaTheme.Gold
+                                        )
+                                    } else {
+                                        FlowRow(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            genres.forEach { ListChip(it) }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(18.dp))
-                        RevealItem(index = 4, revealed = revealed) { GoldRule() }
+                        RevealItem(index = 5, revealed = revealed) { GoldRule() }
                         Spacer(modifier = Modifier.height(6.dp))
 
                         // ── DATENBLATT (Spec sheet) ─────────────
-                        RevealItem(index = 5, revealed = revealed) {
+                        RevealItem(index = 6, revealed = revealed) {
                             Column {
                                 if (isTv) {
                                     val tv = detailState as? DetailState.Tv
@@ -295,7 +362,7 @@ fun MediaDetailDialog(
                         // ── PRIMÄRAKTION: Hinzufügen ODER Bearbeiten ──
                         if (onAdd != null || onEdit != null) {
                             Spacer(modifier = Modifier.height(20.dp))
-                            RevealItem(index = 6, revealed = revealed) {
+                            RevealItem(index = 7, revealed = revealed) {
                                 if (onAdd != null) {
                                     AddAction(onClick = onAdd)
                                 } else if (onEdit != null) {
@@ -459,7 +526,7 @@ private fun LaunchedEffectReveal(onTick: (Int) -> Unit) {
     androidx.compose.runtime.LaunchedEffect(Unit) {
         onTick(0)                 // mount (Container fade/scale)
         delay(120)
-        for (i in 1..6) {
+        for (i in 1..7) {
             onTick(i)
             delay(75)
         }

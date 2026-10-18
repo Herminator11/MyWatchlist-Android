@@ -123,6 +123,7 @@
     <string name="detail_not_on_list">— not on any list —</string>
     <string name="detail_finished_watching">Finished watching</string>
     <string name="detail_watched_on">Watched on</string>
+    <string name="detail_genres">Genres</string>
     <string name="spec_seasons">Seasons</string>
     <string name="spec_episodes">Episodes</string>
     <string name="spec_runtime">Runtime</string>
