@@ -81,7 +81,8 @@ private val PosterHues = listOf(
 /** Coil-Interceptor: liefert sofort einen Verlauf statt eines Netzwerk-Bildes. */
 private class FakePosterInterceptor(private val context: Context) : Interceptor {
     override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
-        val seed = chain.request.data.toString().hashCode()
+        // nur Dateiname → gleiche Farbe in A und B, egal ob w185 oder w500 geladen wird
+        val seed = chain.request.data.toString().substringAfterLast('/').hashCode()
         val (a, b) = PosterHues[Math.floorMod(seed, PosterHues.size)]
         val drawable = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(a, b)).apply {
             setSize(500, 750)
