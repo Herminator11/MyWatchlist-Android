@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.viewmodel
+import com.example.mywatchlist.data.backup.BackupCodec
 import com.example.mywatchlist.data.local.*
 import com.example.mywatchlist.data.remote.*
 
@@ -462,6 +463,23 @@ class LibraryViewModel(
             sections = sections,
             exportDate = currentExportTimestamp()
         )
+    }
+
+    // ── JSON-Backup ─────────────────────────────────────────
+    suspend fun buildBackupJson(): String {
+        val stamp = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US).format(java.util.Date())
+        return BackupCodec.encode(movieDao.getAllOnce(), stamp)
+    }
+
+    /** Wie viele Einträge aus dem Backup fehlen aktuell? (nur lesen) */
+    suspend fun countMissingFromBackup(entries: List<MovieEntity>): Int =
+        BackupCodec.missing(entries, movieDao.getAllOnce()).size
+
+    /** Fügt nur fehlende Einträge hinzu; vorhandene bleiben unverändert. */
+    suspend fun restoreMissingFromBackup(entries: List<MovieEntity>): Int {
+        val missing = BackupCodec.missing(entries, movieDao.getAllOnce())
+        if (missing.isEmpty()) return 0
+        return movieDao.insertMissing(missing).count { it != -1L }
     }
 
     companion object {

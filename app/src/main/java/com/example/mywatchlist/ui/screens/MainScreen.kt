@@ -228,6 +228,9 @@ fun MainScreenApp() {
                 onListPrefsChange = { settingsViewModel.updateListPrefs(it) },
                 contentPrefs = contentPrefs,
                 onContentPrefsChange = { settingsViewModel.updateContentPrefs(it) },
+                onBuildBackup = { libraryViewModel.buildBackupJson() },
+                onCountMissing = { libraryViewModel.countMissingFromBackup(it) },
+                onRestoreMissing = { libraryViewModel.restoreMissingFromBackup(it) },
                 exportCounts = exportCounts,
                 onBuildExportText = { selection ->
                     libraryViewModel.buildExportText(context, selection)

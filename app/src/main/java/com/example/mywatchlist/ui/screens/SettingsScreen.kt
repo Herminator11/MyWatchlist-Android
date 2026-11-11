@@ -1,4 +1,12 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.backup.BackupCodec
+import com.example.mywatchlist.data.local.MovieEntity
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.SettingsBackupRestore
 import com.example.mywatchlist.data.ContentPrefs
 import com.example.mywatchlist.data.TmdbLanguage
 import androidx.compose.material.icons.filled.Translate
@@ -78,6 +86,10 @@ fun SettingsScreen(
     onListPrefsChange: ((ListPrefs) -> ListPrefs) -> Unit = {},
     contentPrefs: ContentPrefs = ContentPrefs(),
     onContentPrefsChange: ((ContentPrefs) -> ContentPrefs) -> Unit = {},
+    // JSON-Backup (null = Zeilen ausblenden, z. B. in Screenshot-Tests)
+    onBuildBackup: (suspend () -> String)? = null,
+    onCountMissing: (suspend (List<MovieEntity>) -> Int)? = null,
+    onRestoreMissing: (suspend (List<MovieEntity>) -> Int)? = null,
     exportCounts: Map<ExportList, Int>,
     onBuildExportText: (Set<ExportList>) -> String?
 ) {
@@ -91,6 +103,50 @@ fun SettingsScreen(
     var pendingExport by remember { mutableStateOf<String?>(null) }
 
     // Storage Access Framework: User wählt Speicherort + Dateiname selbst.
+    val scope = rememberCoroutineScope()
+
+    // ── JSON-Backup speichern ──
+    var pendingBackup by remember { mutableStateOf<String?>(null) }
+    val createBackup = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        val json = pendingBackup
+        pendingBackup = null
+        if (uri == null || json == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
+                        ?: throw java.io.IOException("openOutputStream returned null")
+                }.isSuccess
+            }
+            toaster.show(
+                resources.getString(if (ok) R.string.backup_saved else R.string.backup_failed),
+                type = if (ok) ToastType.Success else ToastType.Error
+            )
+        }
+    }
+
+    // ── JSON-Backup einlesen → erst Vorschau, dann Bestätigung ──
+    var restorePlan by remember { mutableStateOf<RestorePlan?>(null) }
+    val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null || onCountMissing == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val decoded = withContext(Dispatchers.IO) {
+                runCatching {
+                    val text = context.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() }
+                        ?: throw java.io.IOException("openInputStream returned null")
+                    BackupCodec.decode(text)
+                }.getOrNull()
+            }
+            if (decoded == null) {
+                toaster.show(resources.getString(R.string.backup_invalid), type = ToastType.Error)
+            } else {
+                restorePlan = RestorePlan(decoded, onCountMissing(decoded.entries))
+            }
+        }
+    }
+
     val createDocument = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("text/plain")
     ) { uri ->
@@ -397,6 +453,33 @@ fun SettingsScreen(
                 )
             }
 
+            if (onBuildBackup != null && onRestoreMissing != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                SettingsCard {
+                    SettingsRow(
+                        icon = Icons.Filled.Backup,
+                        title = stringResource(R.string.backup_create),
+                        subtitle = stringResource(R.string.backup_create_desc),
+                        onClick = {
+                            scope.launch {
+                                pendingBackup = onBuildBackup()
+                                val day = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+                                createBackup.launch("mywatchlist_backup_$day.json")
+                            }
+                        },
+                        trailing = { SettingsChevron() }
+                    )
+                    HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                    SettingsRow(
+                        icon = Icons.Filled.SettingsBackupRestore,
+                        title = stringResource(R.string.backup_restore),
+                        subtitle = stringResource(R.string.backup_restore_desc),
+                        onClick = { openBackup.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+                        trailing = { SettingsChevron() }
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(40.dp))
 
             // ── VERSION ───────────────────────────────────────
@@ -410,7 +493,53 @@ fun SettingsScreen(
     }
 
     CinemaToaster(state = toaster)
+
+    // Bestätigung vor dem Wiederherstellen – zeigt genau, was passiert
+    restorePlan?.let { plan ->
+        val nothingToDo = plan.missing == 0
+        AlertDialog(
+            onDismissRequest = { restorePlan = null },
+            containerColor = AppTheme.DarkSurface,
+            titleContentColor = AppTheme.TextPrimary,
+            textContentColor = AppTheme.TextSecondary,
+            title = { Text(stringResource(R.string.backup_restore_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.backup_restore_found, plan.decoded.entries.size, plan.decoded.exportedAt ?: "?"))
+                    Text(
+                        if (nothingToDo) stringResource(R.string.backup_restore_nothing)
+                        else stringResource(R.string.backup_restore_missing, plan.missing),
+                        color = AppTheme.TextPrimary
+                    )
+                    Text(stringResource(R.string.backup_restore_safe))
+                    if (plan.decoded.skipped > 0) {
+                        Text(stringResource(R.string.backup_restore_skipped, plan.decoded.skipped))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val entries = plan.decoded.entries
+                    restorePlan = null
+                    if (!nothingToDo && onRestoreMissing != null) scope.launch {
+                        val added = onRestoreMissing(entries)
+                        toaster.show(resources.getString(R.string.backup_restored, added), type = ToastType.Success)
+                    }
+                }) {
+                    Text(
+                        stringResource(if (nothingToDo) R.string.action_close else R.string.backup_restore_confirm),
+                        color = AppTheme.YellowAccent
+                    )
+                }
+            },
+            dismissButton = if (nothingToDo) null else {
+                { TextButton(onClick = { restorePlan = null }) { Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary) } }
+            }
+        )
+    }
 }
+
+private data class RestorePlan(val decoded: BackupCodec.Decoded, val missing: Int)
 
 // ── Hilfs-Composables ────────────────────────────────────────
 
