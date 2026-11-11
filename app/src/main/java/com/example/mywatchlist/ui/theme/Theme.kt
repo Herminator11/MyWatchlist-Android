@@ -37,6 +37,8 @@ private fun CinemaColors.toColorScheme() = darkColorScheme(
     outline = textTertiary,
     outlineVariant = surface2,
     scrim = scrim,
+    error = danger,
+    onError = textPrimary,
 )
 
 // Zentrale Rundungen statt verstreuter RoundedCornerShape(…)-Literale.

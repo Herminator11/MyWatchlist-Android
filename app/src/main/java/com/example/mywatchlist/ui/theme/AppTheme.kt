@@ -34,6 +34,7 @@ object AppTheme {
     val TextTertiary: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.textTertiary
 
     val Hairline: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.hairline
+    val Danger: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.danger
     val Scrim: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.scrim
 
     // — Schrift-Tokens (gebündelte Fonts, kein System/Inter) —

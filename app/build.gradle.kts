@@ -98,6 +98,8 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.3.0")
     implementation("sh.calvin.reorderable:reorderable:2.4.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.sonner)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)

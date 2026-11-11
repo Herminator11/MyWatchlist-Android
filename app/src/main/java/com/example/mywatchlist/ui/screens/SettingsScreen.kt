@@ -2,7 +2,9 @@ package com.example.mywatchlist.ui.screens
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 
-import android.widget.Toast
+import com.dokar.sonner.ToastType
+import com.dokar.sonner.rememberToasterState
+import com.example.mywatchlist.ui.components.common.CinemaToaster
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -42,6 +44,8 @@ fun SettingsScreen(
     onBuildExportText: (Set<ExportList>) -> String?
 ) {
     val context = LocalContext.current
+    // Themed Toasts (compose-sonner) statt System-Toast.makeText
+    val toaster = rememberToasterState()
 
     // Inhalt der noch zu schreibenden Datei (steht erst nach SAF-Auswahl fest)
     var pendingExport by remember { mutableStateOf<String?>(null) }
@@ -58,9 +62,9 @@ fun SettingsScreen(
             context.contentResolver.openOutputStream(uri)?.use { out ->
                 out.write(text.toByteArray())
             } ?: throw java.io.IOException("openOutputStream returned null")
-            Toast.makeText(context, context.getString(R.string.export_saved), Toast.LENGTH_SHORT).show()
+            toaster.show(context.getString(R.string.export_saved), type = ToastType.Success)
         } catch (e: Exception) {
-            Toast.makeText(context, context.getString(R.string.export_failed), Toast.LENGTH_SHORT).show()
+            toaster.show(context.getString(R.string.export_failed), type = ToastType.Error)
         }
     }
 
@@ -68,7 +72,7 @@ fun SettingsScreen(
     fun startExport(selection: Set<ExportList>, fileName: String) {
         val text = onBuildExportText(selection)
         if (text == null) {
-            Toast.makeText(context, context.getString(R.string.export_nothing), Toast.LENGTH_SHORT).show()
+            toaster.show(context.getString(R.string.export_nothing), type = ToastType.Info)
             return
         }
         pendingExport = text
@@ -205,6 +209,8 @@ fun SettingsScreen(
             )
         }
     }
+
+    CinemaToaster(state = toaster)
 }
 
 // ── Hilfs-Composables ────────────────────────────────────────

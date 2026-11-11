@@ -26,6 +26,8 @@ data class CinemaColors(
     val textSecondary: Color,
     val textTertiary: Color,
     val hairline: Color,
+    /** Fehler/Destruktiv (Toasts, Löschen). */
+    val danger: Color,
     /** Scrim hinter Dialogen, falls Blur (API < 31) nicht verfügbar ist. */
     val scrim: Color,
 )
@@ -44,6 +46,7 @@ val NoirGold = CinemaColors(
     // vorher #4A4640 (≈1.9:1 auf Surface) → jetzt ≈3.3:1 für Chevrons/Trenner
     textTertiary = Color(0xFF6E685E),
     hairline = Color(0x33E9B949),
+    danger = Color(0xFFE5484D),
     scrim = Color(0xB3070708),
 )
 
