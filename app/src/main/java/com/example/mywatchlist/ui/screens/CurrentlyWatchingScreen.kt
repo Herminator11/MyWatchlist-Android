@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import com.example.mywatchlist.ui.components.common.EmptyState
@@ -36,8 +37,11 @@ fun CurrentlyWatchingScreen(
     modifier: Modifier = Modifier,
     libraryViewModel: LibraryViewModel
 ) {
-    val allSavedMovies by libraryViewModel.allMovies.collectAsState()
-    val currentlyWatchingList = allSavedMovies.filter { it.listType == "CURRENTLY_WATCHING" }
+    val allSavedMovies by libraryViewModel.allMovies.collectAsStateWithLifecycle()
+    // nur neu filtern, wenn sich die Liste ändert – nicht bei jeder Recomposition
+    val currentlyWatchingList = remember(allSavedMovies) {
+        allSavedMovies.filter { it.listType == "CURRENTLY_WATCHING" }
+    }
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDatePicker by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }

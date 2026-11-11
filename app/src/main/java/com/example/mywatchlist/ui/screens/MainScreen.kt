@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import androidx.compose.ui.res.stringResource
@@ -184,7 +185,7 @@ fun MainScreenApp() {
     val rootNavController = rememberNavController()
     val settingsViewModel: SettingsViewModel = viewModel()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
-    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsState()
+    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -199,7 +200,7 @@ fun MainScreenApp() {
         }
         composable(ROUTE_SETTINGS) {
             // Export-Zähler reaktiv aus den gefilterten StateFlows
-            val exportCounts by libraryViewModel.exportCountsState.collectAsState()
+            val exportCounts by libraryViewModel.exportCountsState.collectAsStateWithLifecycle()
             SettingsScreen(
                 onBack = { rootNavController.popBackStack() },
                 autoHideNavBar = autoHideNavBar,
@@ -219,7 +220,7 @@ private fun MainContent(onOpenSettings: () -> Unit) {
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
     val settingsViewModel: SettingsViewModel = viewModel()
 
-    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsState()
+    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
 
     // App-weite Undo-Snackbar fürs Löschen aus Listen
     val snackbarHostState = remember { SnackbarHostState() }

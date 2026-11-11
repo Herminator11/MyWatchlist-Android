@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import com.example.mywatchlist.ui.components.common.EmptyState
@@ -63,8 +64,8 @@ fun WantToWatchScreen(
     libraryViewModel: LibraryViewModel
 ) {
     // Gefilterte + vorsortierte StateFlows direkt aus dem ViewModel
-    val tvEntries by libraryViewModel.wantToWatchTv.collectAsState()
-    val movieEntries by libraryViewModel.wantToWatchMovies.collectAsState()
+    val tvEntries by libraryViewModel.wantToWatchTv.collectAsStateWithLifecycle()
+    val movieEntries by libraryViewModel.wantToWatchMovies.collectAsStateWithLifecycle()
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var selectedMovieForMove by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }

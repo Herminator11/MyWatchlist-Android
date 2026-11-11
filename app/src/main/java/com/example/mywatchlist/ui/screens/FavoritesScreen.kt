@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import com.example.mywatchlist.ui.components.common.EmptyState
@@ -44,7 +45,7 @@ fun FavoritesScreen(
     modifier: Modifier = Modifier,
     libraryViewModel: LibraryViewModel
 ) {
-    val allSavedMovies by libraryViewModel.allMovies.collectAsState()
+    val allSavedMovies by libraryViewModel.allMovies.collectAsStateWithLifecycle()
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
     val blurRadius by animateDpAsState(
@@ -103,7 +104,7 @@ fun FavoritesScreen(
                     .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(categories) { category ->
+                items(categories, key = { it }) { category ->
                     FilterChip(
                         selected = selectedCategory == category,
                         onClick = { selectedCategory = category },

@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import com.example.mywatchlist.ui.components.common.EmptyState
@@ -50,8 +51,8 @@ fun RecentlyWatchedScreen(
     libraryViewModel: LibraryViewModel
 ) {
     // Gefilterte + vorsortierte StateFlows – keine Verarbeitung mehr im Composable
-    val tvEntries by libraryViewModel.recentlyWatchedTv.collectAsState()
-    val movieEntries by libraryViewModel.recentlyWatchedMovies.collectAsState()
+    val tvEntries by libraryViewModel.recentlyWatchedTv.collectAsStateWithLifecycle()
+    val movieEntries by libraryViewModel.recentlyWatchedMovies.collectAsStateWithLifecycle()
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
     // Lokaler Filter, um einen bereits gesehenen Titel schnell zu finden
