@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v2-Icon: Bordeaux statt Gelb, damit beide Apps auf dem Homescreen unterscheidbar sind. -->
+<resources>
+    <color name="ic_launcher_background">#8E2B3A</color>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nur für den Build-Typ "v2": überschreibt den App-Namen, damit
+     "MyWatchList 2" neben der Original-App klar erkennbar ist. -->
+<resources>
+    <string name="app_name">MyWatchList 2</string>
+</resources>

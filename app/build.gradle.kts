@@ -38,7 +38,19 @@ android {
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
     }
 
+    // Tests auf Gerät laufen gegen "MyWatchList 2" (v2), NIE gegen die Original-App.
+    testBuildType = "v2"
+
     buildTypes {
+        // "MyWatchList 2": eigenständige Test-App mit eigenem Paket (…mywatchlist.v2),
+        // eigener Datenbank und eigenem DataStore. Läuft parallel zur Original-App
+        // und kann deren Daten technisch nicht verändern.
+        create("v2") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".v2"
+            versionNameSuffix = "-v2"
+            matchingFallbacks += listOf("debug")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
