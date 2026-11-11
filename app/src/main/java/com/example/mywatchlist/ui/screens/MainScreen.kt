@@ -6,6 +6,9 @@ import com.example.mywatchlist.ui.viewmodel.*
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -111,16 +114,18 @@ fun MovieTrackerTopBar(onProfileClick: () -> Unit) {
             }
         },
         actions = {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = stringResource(R.string.settings_title),
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(26.dp)
-                    .clip(CircleShape)
-                    .clickable { onProfileClick() },
-                tint = AppTheme.TextSecondary
-            )
+            // IconButton statt klickbarem Icon → 48-dp-Touch-Ziel + Button-Rolle
+            IconButton(
+                onClick = onProfileClick,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.settings_title),
+                    modifier = Modifier.size(26.dp),
+                    tint = AppTheme.TextSecondary
+                )
+            }
         }
     )
 }
@@ -349,7 +354,8 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .selectableGroup(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -405,9 +411,12 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 // HIER übergeben wir die interactionSource für die isPressed-Erkennung
-                                .clickable(
+                                // selectable + Role.Tab → TalkBack sagt "Tab, ausgewählt"
+                                .selectable(
+                                    selected = isSelected,
                                     interactionSource = interactionSource,
-                                    indication = null
+                                    indication = null,
+                                    role = Role.Tab
                                 ) {
                                     if (currentRoute != item.route) {
                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -418,7 +427,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                                         }
                                     }
                                 }
-                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                                .padding(horizontal = 14.dp, vertical = 12.dp), // 24 + 2×12 = 48 dp
                             contentAlignment = Alignment.Center
                         ) {
                             TooltipBox(

@@ -603,7 +603,7 @@ private fun InteractivePosterDialog(
                 Text(
                     text = stringResource(R.string.poster_hint),
                     fontFamily = SpecMono,
-                    fontSize = 10.sp,
+                    fontSize = 11.sp,
                     letterSpacing = 1.5.sp,
                     color = AppTheme.TextSecondary
                 )
@@ -747,7 +747,7 @@ private fun TicketTag(text: String) {
             text = text,
             fontFamily = SpecMono,
             fontWeight = FontWeight.Bold,
-            fontSize = 10.sp,
+            fontSize = 11.sp,
             letterSpacing = 3.sp,
             color = AppTheme.GoldBright,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -862,7 +862,7 @@ private fun FieldLabel(text: String) {
         text = text.uppercase(),
         fontFamily = SpecMono,
         fontWeight = FontWeight.Bold,
-        fontSize = 10.sp,
+        fontSize = 11.sp,
         letterSpacing = 2.5.sp,
         color = AppTheme.YellowAccent
     )

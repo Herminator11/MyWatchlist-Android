@@ -400,7 +400,7 @@ fun SheetSectionLabel(label: String) {
     Text(
         text = label.uppercase(),
         fontFamily = AppTheme.Mono,
-        fontSize = 10.sp,
+        fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         color = AppTheme.YellowAccent,
         letterSpacing = 2.sp,

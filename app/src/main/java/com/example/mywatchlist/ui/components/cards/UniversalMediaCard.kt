@@ -9,6 +9,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -62,11 +65,11 @@ fun UniversalMediaCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(110.dp)
             .then(
                 if (onClick != null || onLongClick != null)
                     Modifier.combinedClickable(
                         onClick = { onClick?.invoke() },
+                        onLongClickLabel = if (onLongClick != null) stringResource(R.string.a11y_edit_entry) else null,
                         onLongClick = onLongClick
                     )
                 else Modifier
@@ -75,15 +78,22 @@ fun UniversalMediaCard(
         colors = CardDefaults.cardColors(containerColor = AppTheme.DarkSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
+        // Mindesthöhe statt fester Höhe: bei großer Systemschrift wächst die
+        // Karte mit, statt Titel/Metazeile abzuschneiden.
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 110.dp)
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // POSTER
             if (item.posterPath != null) {
                 AsyncImage(
-                    model = "https://image.tmdb.org/t/p/w500${item.posterPath}",
-                    contentDescription = item.title,
+                    // w185 reicht für 75-dp-Thumbnails (w500 nur im Detail-Dialog)
+                    model = "https://image.tmdb.org/t/p/w185${item.posterPath}",
+                    // Titel steht als Text daneben → Poster ist für TalkBack dekorativ
+                    contentDescription = null,
                     modifier = Modifier
                         .width(75.dp)
                         .fillMaxHeight()
@@ -152,7 +162,7 @@ fun UniversalMediaCard(
                         Text(
                             text = if (item.mediaType == "tv") stringResource(R.string.tag_series) else stringResource(R.string.tag_film),
                             fontFamily = AppTheme.Mono,
-                            fontSize = 9.sp,
+                            fontSize = 11.sp,
                             letterSpacing = 1.sp,
                             fontWeight = FontWeight.Bold,
                             color = AppTheme.TextSecondary,
@@ -164,7 +174,7 @@ fun UniversalMediaCard(
                             Text(
                                 text = item.favoriteCategory,
                                 fontFamily = AppTheme.Mono,
-                                fontSize = 9.sp,
+                                fontSize = 11.sp,
                                 letterSpacing = 1.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = AppTheme.GoldBright,
@@ -181,16 +191,17 @@ fun UniversalMediaCard(
                 onFinishClick != null -> {
                     Box(
                         modifier = Modifier
-                            .padding(end = 14.dp)
-                            .size(38.dp)
+                            .padding(end = 10.dp)
+                            .size(48.dp)
+                            .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(AppTheme.YellowAccent)
-                            .clickable { onFinishClick() },
+                            .clickable(role = Role.Button) { onFinishClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Mark as finished",
+                            contentDescription = stringResource(R.string.a11y_mark_finished),
                             tint = AppTheme.OnAccent,
                             modifier = Modifier.size(20.dp)
                         )
@@ -199,11 +210,12 @@ fun UniversalMediaCard(
                 onMoveClick != null -> {
                     Box(
                         modifier = Modifier
-                            .padding(end = 14.dp)
-                            .size(38.dp)
+                            .padding(end = 10.dp)
+                            .size(48.dp)
+                            .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(AppTheme.YellowAccent)
-                            .clickable { onMoveClick() },
+                            .clickable(role = Role.Button) { onMoveClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(

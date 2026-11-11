@@ -98,7 +98,7 @@ fun ScreenHeader(title: String) {
             Text(
                 text = "·".repeat(3) + "  " + stringResource(R.string.header_subtitle),
                 fontFamily = AppTheme.Mono,
-                fontSize = 9.sp,
+                fontSize = 11.sp,
                 letterSpacing = 2.sp,
                 color = AppTheme.TextSecondary
             )
