@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.components.cards
+import com.example.mywatchlist.data.CardDensity
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -62,6 +63,10 @@ fun UniversalMediaCard(
     showFavoriteBadge: Boolean = false,
     dragHandle: (@Composable () -> Unit)? = null
 ) {
+    val prefs = LocalListPrefs.current
+    val compact = prefs.density == CardDensity.COMPACT
+    val minHeight = if (compact) 76.dp else 110.dp
+    val posterWidth = if (compact) 52.dp else 75.dp
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -83,7 +88,7 @@ fun UniversalMediaCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 110.dp)
+                .heightIn(min = minHeight)
                 .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -95,7 +100,7 @@ fun UniversalMediaCard(
                     // Titel steht als Text daneben → Poster ist für TalkBack dekorativ
                     contentDescription = null,
                     modifier = Modifier
-                        .width(75.dp)
+                        .width(posterWidth)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)),
                     contentScale = ContentScale.Crop
@@ -103,7 +108,7 @@ fun UniversalMediaCard(
             } else {
                 Box(
                     modifier = Modifier
-                        .width(75.dp)
+                        .width(posterWidth)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
                         .background(AppTheme.DarkSurface2),
@@ -117,7 +122,7 @@ fun UniversalMediaCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 14.dp, top = 12.dp, bottom = 12.dp),
+                    .padding(start = 14.dp, top = if (compact) 8.dp else 12.dp, bottom = if (compact) 8.dp else 12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 val titleText = if (item.mediaType == "tv" && item.seasonNumber.isNotBlank()) {
@@ -135,39 +140,48 @@ fun UniversalMediaCard(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppTheme.TextPrimary,
-                        maxLines = 2,
+                        maxLines = if (compact) 1 else 2,
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 19.sp,
                         modifier = Modifier.weight(1f, fill = false)
                     )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(if (compact) 3.dp else 6.dp))
 
+                // Gesehen-Datum (Verlauf) wird immer gezeigt, das Erscheinungsjahr nur,
+                // wenn „Jahr anzeigen“ aktiv ist.
                 val displayDate = item.finishedDate
-                    ?: if (item.date.length >= 4) item.date.take(4) else item.date
+                    ?: if (!prefs.showYear) null
+                    else if (item.date.length >= 4) item.date.take(4) else item.date.ifBlank { null }
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = displayDate,
-                        fontFamily = AppTheme.Mono,
-                        fontSize = 11.sp,
-                        color = AppTheme.TextSecondary,
-                        fontWeight = FontWeight.Normal
-                    )
-                    Text("\u00B7", color = AppTheme.TextTertiary, fontSize = 12.sp)
-                    Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.DarkSurface2) {
+                    if (displayDate != null) {
                         Text(
-                            text = if (item.mediaType == "tv") stringResource(R.string.tag_series) else stringResource(R.string.tag_film),
+                            text = displayDate,
                             fontFamily = AppTheme.Mono,
                             fontSize = 11.sp,
-                            letterSpacing = 1.sp,
-                            fontWeight = FontWeight.Bold,
                             color = AppTheme.TextSecondary,
-                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                            fontWeight = FontWeight.Normal
                         )
+                    }
+                    if (displayDate != null && prefs.showTypeTag) {
+                        Text("\u00B7", color = AppTheme.TextTertiary, fontSize = 12.sp)
+                    }
+                    if (prefs.showTypeTag) {
+                        Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.DarkSurface2) {
+                            Text(
+                                text = if (item.mediaType == "tv") stringResource(R.string.tag_series) else stringResource(R.string.tag_film),
+                                fontFamily = AppTheme.Mono,
+                                fontSize = 11.sp,
+                                letterSpacing = 1.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppTheme.TextSecondary,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                            )
+                        }
                     }
                     if (showFavoriteBadge && item.mediaType == "tv" && !item.favoriteCategory.isNullOrBlank()) {
                         Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.YellowAccent.copy(alpha = 0.14f)) {

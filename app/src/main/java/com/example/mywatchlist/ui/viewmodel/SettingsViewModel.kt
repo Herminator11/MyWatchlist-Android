@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.viewmodel
+import com.example.mywatchlist.data.ListPrefs
 import com.example.mywatchlist.data.AppearancePrefs
 import com.example.mywatchlist.data.NavConfig
 import com.example.mywatchlist.data.*
@@ -44,6 +45,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val current = appearance.value ?: return
         val next = transform(current)
         if (next != current) viewModelScope.launch { repository.setAppearance(next) }
+    }
+
+    // null bis geladen → z. B. der Watchlist-Start-Tab stimmt schon beim ersten Frame
+    val listPrefs: StateFlow<ListPrefs?> = repository.listPrefs
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun updateListPrefs(transform: (ListPrefs) -> ListPrefs) {
+        val current = listPrefs.value ?: return
+        val next = transform(current)
+        if (next != current) viewModelScope.launch { repository.setListPrefs(next) }
     }
 
     fun resetNavConfig() {

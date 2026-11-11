@@ -1,4 +1,6 @@
 package com.example.mywatchlist
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.mywatchlist.ui.components.cards.LocalListPrefs
 import com.example.mywatchlist.ui.viewmodel.SettingsViewModel
 import com.example.mywatchlist.ui.theme.cinemaPalette
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -32,8 +34,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settingsViewModel: SettingsViewModel = viewModel()
             val appearance by settingsViewModel.appearance.collectAsStateWithLifecycle()
-            // Bis die Darstellung geladen ist (wenige ms): neutraler Noir-Grund
-            val prefs = appearance ?: run {
+            val listPrefsState by settingsViewModel.listPrefs.collectAsStateWithLifecycle()
+            // Bis die Einstellungen geladen sind (wenige ms): neutraler Noir-Grund
+            val listPrefs = listPrefsState
+            val prefs = appearance?.takeIf { listPrefs != null } ?: run {
                 Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF0B0B0D)))
                 return@setContent
             }
@@ -47,7 +51,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreenApp()
+                    CompositionLocalProvider(LocalListPrefs provides listPrefs!!) {
+                        MainScreenApp()
+                    }
                 }
             }
         }

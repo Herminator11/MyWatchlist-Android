@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -29,6 +30,23 @@ import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.captureScreenRoboImage
 import dev.chrisbanes.haze.HazeState
 import org.junit.Rule
+import org.junit.Before
+import org.junit.After
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import coil.Coil
+import coil.ImageLoader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.mywatchlist.data.CardDensity
+import com.example.mywatchlist.data.ListPrefs
+import com.example.mywatchlist.data.ListSort
+import com.example.mywatchlist.data.local.AppDatabase
+import com.example.mywatchlist.ui.components.cards.LocalListPrefs
+import com.example.mywatchlist.ui.screens.CurrentlyWatchingScreen
+import com.example.mywatchlist.ui.screens.WantToWatchScreen
+import com.example.mywatchlist.ui.viewmodel.LibraryViewModel
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -131,5 +149,53 @@ class FeatureScreenshotTest {
             }
         }
         shoot("feature_nav_labels_crimson_amoled")
+    }
+
+    private lateinit var db: AppDatabase
+    private lateinit var vm: LibraryViewModel
+
+    @Before
+    fun seed() {
+        val app = ApplicationProvider.getApplicationContext<android.app.Application>()
+        db = Room.inMemoryDatabaseBuilder(app, AppDatabase::class.java).allowMainThreadQueries().build()
+        runBlocking { db.movieDao().insertOrUpdateAll(SampleData) }
+        vm = LibraryViewModel(app, db.movieDao())
+        Coil.setImageLoader(ImageLoader.Builder(app).components { add(FakePosterInterceptor(app)) }.dispatcher(Dispatchers.Unconfined).build())
+    }
+
+    @After
+    fun closeDb() = db.close()
+
+    private fun waitFor(text: String) = composeRule.waitUntil(10_000) {
+        composeRule.onAllNodesWithText(text, substring = true, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+    }
+
+    @Test
+    fun watchingPosterGrid() {
+        composeRule.setContent {
+            MyWatchlistTheme {
+                CompositionLocalProvider(LocalListPrefs provides ListPrefs(density = CardDensity.POSTER, watchingSort = ListSort.TITLE)) {
+                    CurrentlyWatchingScreen(libraryViewModel = vm)
+                }
+            }
+        }
+        waitFor("Severance")
+        shoot("feature_lists_poster_grid")
+    }
+
+    @Test
+    fun watchlistCompactNewestMovies() {
+        composeRule.setContent {
+            MyWatchlistTheme {
+                CompositionLocalProvider(
+                    LocalListPrefs provides ListPrefs(
+                        density = CardDensity.COMPACT, showTypeTag = false,
+                        watchlistSort = ListSort.YEAR_NEWEST, watchlistStartTab = com.example.mywatchlist.data.MediaTab.MOVIES
+                    )
+                ) { WantToWatchScreen(libraryViewModel = vm) }
+            }
+        }
+        waitFor("Dune")
+        shoot("feature_lists_compact")
     }
 }

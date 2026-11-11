@@ -1,4 +1,14 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.ListPrefs
+import com.example.mywatchlist.data.CardDensity
+import com.example.mywatchlist.data.ListSort
+import com.example.mywatchlist.data.MediaTab
+import androidx.compose.material.icons.filled.ViewAgenda
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.Tab
+import androidx.compose.material.icons.filled.Check
 import com.example.mywatchlist.data.AppearancePrefs
 import com.example.mywatchlist.data.AccentOption
 import com.example.mywatchlist.ui.theme.swatch
@@ -60,6 +70,8 @@ fun SettingsScreen(
     onOpenNavigation: () -> Unit = {},
     appearance: AppearancePrefs = AppearancePrefs(),
     onAppearanceChange: ((AppearancePrefs) -> AppearancePrefs) -> Unit = {},
+    listPrefs: ListPrefs = ListPrefs(),
+    onListPrefsChange: ((ListPrefs) -> ListPrefs) -> Unit = {},
     exportCounts: Map<ExportList, Int>,
     onBuildExportText: (Set<ExportList>) -> String?
 ) {
@@ -216,6 +228,73 @@ fun SettingsScreen(
                     subtitle = stringResource(R.string.settings_reduce_motion_desc),
                     checked = appearance.reduceMotion,
                     onChange = { v -> onAppearanceChange { it.copy(reduceMotion = v) } }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── SEKTION: LISTEN ───────────────────────────────
+            SettingsSectionHeader(stringResource(R.string.settings_section_lists))
+            SettingsCard {
+                SettingsChoiceRow(
+                    icon = Icons.Filled.ViewAgenda,
+                    title = stringResource(R.string.settings_density),
+                    options = listOf(
+                        CardDensity.COMFORTABLE to stringResource(R.string.density_comfortable),
+                        CardDensity.COMPACT to stringResource(R.string.density_compact),
+                        CardDensity.POSTER to stringResource(R.string.density_poster),
+                    ),
+                    selected = listPrefs.density,
+                    onSelect = { v -> onListPrefsChange { it.copy(density = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsSwitchRow(
+                    icon = Icons.Filled.CalendarMonth,
+                    title = stringResource(R.string.settings_show_year),
+                    subtitle = null,
+                    checked = listPrefs.showYear,
+                    onChange = { v -> onListPrefsChange { it.copy(showYear = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsSwitchRow(
+                    icon = Icons.Filled.Sell,
+                    title = stringResource(R.string.settings_show_type),
+                    subtitle = null,
+                    checked = listPrefs.showTypeTag,
+                    onChange = { v -> onListPrefsChange { it.copy(showTypeTag = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                val sortOptions = listOf(
+                    ListSort.DEFAULT to stringResource(R.string.sort_default),
+                    ListSort.TITLE to stringResource(R.string.sort_title),
+                    ListSort.YEAR_NEWEST to stringResource(R.string.sort_year_newest),
+                    ListSort.YEAR_OLDEST to stringResource(R.string.sort_year_oldest),
+                )
+                SettingsChoiceRow(
+                    icon = Icons.Filled.Sort,
+                    title = stringResource(R.string.settings_sort_watchlist),
+                    options = sortOptions,
+                    selected = listPrefs.watchlistSort,
+                    onSelect = { v -> onListPrefsChange { it.copy(watchlistSort = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsChoiceRow(
+                    icon = Icons.Filled.Sort,
+                    title = stringResource(R.string.settings_sort_watching),
+                    options = sortOptions,
+                    selected = listPrefs.watchingSort,
+                    onSelect = { v -> onListPrefsChange { it.copy(watchingSort = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsChoiceRow(
+                    icon = Icons.Filled.Tab,
+                    title = stringResource(R.string.settings_watchlist_tab),
+                    options = listOf(
+                        MediaTab.SERIES to stringResource(R.string.tab_series),
+                        MediaTab.MOVIES to stringResource(R.string.tab_movies),
+                    ),
+                    selected = listPrefs.watchlistStartTab,
+                    onSelect = { v -> onListPrefsChange { it.copy(watchlistStartTab = v) } }
                 )
             }
 
@@ -439,6 +518,50 @@ private fun AccentPicker(selected: AccentOption, onSelect: (AccentOption) -> Uni
                         )
                         .padding(4.dp)
                         .background(option.swatch(), CircleShape)
+                )
+            }
+        }
+    }
+}
+
+/** Zeile mit aktuellem Wert rechts; Antippen öffnet ein Auswahlmenü. */
+@Composable
+internal fun <T> SettingsChoiceRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    options: List<Pair<T, String>>,
+    selected: T,
+    onSelect: (T) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    val current = options.firstOrNull { it.first == selected }?.second.orEmpty()
+    Box {
+        SettingsRow(
+            icon = icon,
+            title = title,
+            subtitle = current,
+            onClick = { open = true },
+            trailing = { SettingsChevron() }
+        )
+        DropdownMenu(
+            expanded = open,
+            onDismissRequest = { open = false },
+            containerColor = AppTheme.DarkSurface2,
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            options.forEach { (value, label) ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            label,
+                            color = if (value == selected) AppTheme.YellowAccent else AppTheme.TextPrimary,
+                            fontWeight = if (value == selected) FontWeight.SemiBold else FontWeight.Normal
+                        )
+                    },
+                    leadingIcon = {
+                        if (value == selected) Icon(Icons.Filled.Check, null, tint = AppTheme.YellowAccent)
+                    },
+                    onClick = { onSelect(value); open = false }
                 )
             }
         }

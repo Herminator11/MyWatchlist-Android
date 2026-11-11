@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.ListPrefs
 import com.example.mywatchlist.data.AppearancePrefs
 import com.example.mywatchlist.ui.theme.LocalHapticsEnabled
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -199,6 +200,7 @@ fun MainScreenApp() {
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
     val appearance by settingsViewModel.appearance.collectAsStateWithLifecycle()
+    val listPrefs by settingsViewModel.listPrefs.collectAsStateWithLifecycle()
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -221,6 +223,8 @@ fun MainScreenApp() {
                 onOpenNavigation = { rootNavController.navigate(ROUTE_SETTINGS_NAVIGATION) },
                 appearance = appearance ?: AppearancePrefs(),
                 onAppearanceChange = { settingsViewModel.updateAppearance(it) },
+                listPrefs = listPrefs ?: ListPrefs(),
+                onListPrefsChange = { settingsViewModel.updateListPrefs(it) },
                 exportCounts = exportCounts,
                 onBuildExportText = { selection ->
                     libraryViewModel.buildExportText(context, selection)

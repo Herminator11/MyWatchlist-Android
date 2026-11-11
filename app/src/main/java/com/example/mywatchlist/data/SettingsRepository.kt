@@ -28,6 +28,35 @@ class SettingsRepository(private val context: Context) {
         private val KEY_NAV_LABELS = booleanPreferencesKey("nav_labels")
         private val KEY_HAPTICS = booleanPreferencesKey("haptics")
         private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
+        private val KEY_DENSITY = stringPreferencesKey("list_density")
+        private val KEY_SHOW_YEAR = booleanPreferencesKey("list_show_year")
+        private val KEY_SHOW_TYPE = booleanPreferencesKey("list_show_type")
+        private val KEY_SORT_WATCHLIST = stringPreferencesKey("sort_watchlist")
+        private val KEY_SORT_WATCHING = stringPreferencesKey("sort_watching")
+        private val KEY_WATCHLIST_TAB = stringPreferencesKey("watchlist_start_tab")
+    }
+
+    val listPrefs: Flow<ListPrefs> = context.dataStore.data.map { p ->
+        val d = ListPrefs()
+        ListPrefs(
+            density = enumOrDefault(p[KEY_DENSITY], d.density),
+            showYear = p[KEY_SHOW_YEAR] ?: d.showYear,
+            showTypeTag = p[KEY_SHOW_TYPE] ?: d.showTypeTag,
+            watchlistSort = enumOrDefault(p[KEY_SORT_WATCHLIST], d.watchlistSort),
+            watchingSort = enumOrDefault(p[KEY_SORT_WATCHING], d.watchingSort),
+            watchlistStartTab = enumOrDefault(p[KEY_WATCHLIST_TAB], d.watchlistStartTab),
+        )
+    }
+
+    suspend fun setListPrefs(prefs: ListPrefs) {
+        context.dataStore.edit { p ->
+            p[KEY_DENSITY] = prefs.density.name
+            p[KEY_SHOW_YEAR] = prefs.showYear
+            p[KEY_SHOW_TYPE] = prefs.showTypeTag
+            p[KEY_SORT_WATCHLIST] = prefs.watchlistSort.name
+            p[KEY_SORT_WATCHING] = prefs.watchingSort.name
+            p[KEY_WATCHLIST_TAB] = prefs.watchlistStartTab.name
+        }
     }
 
     val appearance: Flow<AppearancePrefs> = context.dataStore.data.map { p ->

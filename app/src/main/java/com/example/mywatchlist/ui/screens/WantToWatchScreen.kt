@@ -1,4 +1,13 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import com.example.mywatchlist.data.CardDensity
+import com.example.mywatchlist.data.sortedFor
+import com.example.mywatchlist.ui.components.cards.LocalListPrefs
+import com.example.mywatchlist.ui.components.cards.PosterTile
+import com.example.mywatchlist.data.MediaTab
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
@@ -77,7 +86,12 @@ fun WantToWatchScreen(
     )
 
     val tabs = listOf(stringResource(R.string.tab_series), stringResource(R.string.tab_movies))
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val listPrefs = LocalListPrefs.current
+    // Start-Tab aus den Einstellungen (Serien oder Filme)
+    val pagerState = rememberPagerState(
+        initialPage = if (listPrefs.watchlistStartTab == MediaTab.MOVIES) 1 else 0,
+        pageCount = { tabs.size }
+    )
     val coroutineScope = rememberCoroutineScope()
 
     Box(
@@ -123,7 +137,8 @@ fun WantToWatchScreen(
         ) { page ->
             val isTvPage = page == 0
             // Liste kommt bereits gefiltert + alphabetisch sortiert aus dem ViewModel
-            val entries = if (isTvPage) tvEntries else movieEntries
+            val raw = if (isTvPage) tvEntries else movieEntries
+            val entries = remember(raw, listPrefs.watchlistSort) { raw.sortedFor(listPrefs.watchlistSort) }
 
             if (entries.isEmpty()) {
                 EmptyState(
@@ -131,6 +146,29 @@ fun WantToWatchScreen(
                     message = stringResource(R.string.empty_watchlist),
                     hint = stringResource(R.string.empty_hint_search)
                 )
+            } else if (listPrefs.density == CardDensity.POSTER) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 104.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(18.dp),
+                    contentPadding = PaddingValues(top = 16.dp, bottom = 192.dp)
+                ) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        ScreenHeader(title = stringResource(R.string.list_want_to_watch))
+                    }
+                    gridItems(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
+                        PosterTile(
+                            item = entity,
+                            modifier = Modifier.animateItem(),
+                            onMoveClick = { selectedMovieForMove = entity },
+                            onClick = { movieForDetail = entity },
+                            onLongClick = { selectedMovieForEdit = entity }
+                        )
+                    }
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier

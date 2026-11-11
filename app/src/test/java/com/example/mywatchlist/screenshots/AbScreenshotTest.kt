@@ -79,7 +79,7 @@ private val PosterHues = listOf(
 )
 
 /** Coil-Interceptor: liefert sofort einen Verlauf statt eines Netzwerk-Bildes. */
-private class FakePosterInterceptor(private val context: Context) : Interceptor {
+internal class FakePosterInterceptor(private val context: Context) : Interceptor {
     override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
         // nur Dateiname → gleiche Farbe in A und B, egal ob w185 oder w500 geladen wird
         val seed = chain.request.data.toString().substringAfterLast('/').hashCode()
@@ -102,7 +102,7 @@ private fun entity(
     notes = null, sortOrder = sort,
 )
 
-private val SampleData = listOf(
+internal val SampleData = listOf(
     // Am Schauen
     entity(1, "Severance", WatchListType.CURRENTLY_WATCHING, "tv", "2022", season = "Season 2"),
     entity(2, "The Bear", WatchListType.CURRENTLY_WATCHING, "tv", "2022", season = "Season 3"),
