@@ -1,4 +1,6 @@
 package com.example.mywatchlist
+import android.content.Intent
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.example.mywatchlist.ui.components.cards.LocalContentPrefs
 import androidx.compose.runtime.CompositionLocalProvider
 import com.example.mywatchlist.ui.components.cards.LocalListPrefs
@@ -24,8 +26,25 @@ import androidx.compose.ui.Modifier
 import com.example.mywatchlist.ui.theme.MyWatchlistTheme
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        /** Route des Tabs, der geöffnet werden soll (z. B. vom Widget). */
+        const val EXTRA_OPEN_TAB = "open_tab"
+    }
+
+    // Widget-Tipp → Tab öffnen; auch wenn die App schon läuft (onNewIntent)
+    private val openTabRequest = MutableStateFlow<String?>(null)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.getStringExtra(EXTRA_OPEN_TAB)?.let { openTabRequest.value = it }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) {
+            intent?.getStringExtra(EXTRA_OPEN_TAB)?.let { openTabRequest.value = it }
+        }
         // Edge-to-Edge auf allen API-Levels (ab Android 15 ohnehin erzwungen):
         // transparente, dunkle Systemleisten über dem Noir-Hintergrund.
         enableEdgeToEdge(
@@ -57,7 +76,11 @@ class MainActivity : ComponentActivity() {
                         LocalListPrefs provides listPrefs!!,
                         LocalContentPrefs provides contentPrefs,
                     ) {
-                        MainScreenApp()
+                        val request by openTabRequest.collectAsStateWithLifecycle()
+                        MainScreenApp(
+                            openTabRequest = request,
+                            onOpenTabHandled = { openTabRequest.value = null }
+                        )
                     }
                 }
             }

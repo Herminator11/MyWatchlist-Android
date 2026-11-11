@@ -194,7 +194,10 @@ const val ROUTE_SETTINGS = "settings"
 const val ROUTE_SETTINGS_NAVIGATION = "settings/navigation"
 
 @Composable
-fun MainScreenApp() {
+fun MainScreenApp(
+    openTabRequest: String? = null,
+    onOpenTabHandled: () -> Unit = {},
+) {
     val rootNavController = rememberNavController()
     val settingsViewModel: SettingsViewModel = viewModel()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
@@ -205,13 +208,20 @@ fun MainScreenApp() {
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    // Widget-Tipp während Einstellungen offen sind → zurück zur Hauptansicht
+    LaunchedEffect(openTabRequest) {
+        if (openTabRequest != null) rootNavController.popBackStack("main", inclusive = false)
+    }
+
     NavHost(
         navController = rootNavController,
         startDestination = "main"
     ) {
         composable("main") {
             MainContent(
-                onOpenSettings = { rootNavController.navigate(ROUTE_SETTINGS) }
+                onOpenSettings = { rootNavController.navigate(ROUTE_SETTINGS) },
+                openTabRequest = openTabRequest,
+                onOpenTabHandled = onOpenTabHandled
             )
         }
         composable(ROUTE_SETTINGS) {
@@ -252,7 +262,11 @@ fun MainScreenApp() {
 }
 
 @Composable
-private fun MainContent(onOpenSettings: () -> Unit) {
+private fun MainContent(
+    onOpenSettings: () -> Unit,
+    openTabRequest: String? = null,
+    onOpenTabHandled: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
     val settingsViewModel: SettingsViewModel = viewModel()
@@ -308,6 +322,19 @@ private fun MainContent(onOpenSettings: () -> Unit) {
     val config = navConfig ?: run {
         Box(Modifier.fillMaxSize().background(AppTheme.DarkBg))
         return
+    }
+
+    // Vom Widget angeforderten Tab öffnen (alle Routen sind im Graph, auch ausgeblendete)
+    LaunchedEffect(openTabRequest) {
+        val route = openTabRequest ?: return@LaunchedEffect
+        if (BottomNavItem.fromRoute(route) != null) {
+            navController.navigate(route) {
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+        onOpenTabHandled()
     }
 
     Scaffold(

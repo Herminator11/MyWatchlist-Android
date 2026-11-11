@@ -1,4 +1,15 @@
 package com.example.mywatchlist
+import com.example.mywatchlist.data.SettingsRepository
+import com.example.mywatchlist.data.local.AppDatabase
+import com.example.mywatchlist.widget.WatchlistWidget
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.debounce
 
 import android.app.Application
 import coil.Coil
@@ -39,5 +50,22 @@ class MyWatchlistApp : Application() {
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .build()
         )
+        observeForWidgets()
     }
+
+    // Homescreen-Widgets aktuell halten: bei jeder Listen- oder Darstellungsänderung
+    // neu zeichnen (nur lesend; tut nichts, wenn kein Widget platziert ist).
+    @OptIn(FlowPreview::class)
+    private fun observeForWidgets() {
+        val dao = AppDatabase.getDatabase(this).movieDao()
+        val settings = SettingsRepository(this)
+        appScope.launch {
+            combine(dao.getAllMoviesFlow(), settings.appearance) { movies, look -> movies to look }
+                .drop(1)               // Startzustand zeichnet das Widget selbst
+                .debounce(500)
+                .collect { runCatching { WatchlistWidget.refreshAll(this@MyWatchlistApp) } }
+        }
+    }
+
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }

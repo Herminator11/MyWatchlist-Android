@@ -131,6 +131,11 @@
     <string name="settings_export_count">%1$d entries</string>
     <string name="settings_export_all">Export all lists</string>
     <string name="settings_export_all_desc">One .txt file with every list</string>
+    <string name="widget_name">MyWatchlist list</string>
+    <string name="widget_description">One of your lists on the home screen</string>
+    <string name="widget_empty">Nothing here yet</string>
+    <string name="widget_config_title">WIDGET</string>
+    <string name="widget_config_hint">Which list should this widget show? You can change it later by long-pressing the widget.</string>
     <string name="backup_create">Create backup</string>
     <string name="backup_create_desc">All lists as a .json file you can restore later</string>
     <string name="backup_restore">Restore from backup</string>
