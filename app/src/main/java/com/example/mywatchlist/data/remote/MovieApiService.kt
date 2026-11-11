@@ -119,8 +119,18 @@ data class TmdbMovie(
     @SerializedName("poster_path")
     val posterPath: String?,
 
-    val overview: String?
+    val overview: String?,
+
+    // Originaltitel (nur Anzeige in der Suche, optional)
+    @SerializedName("original_title")
+    val originalTitle: String? = null,
+    @SerializedName("original_name")
+    val originalName: String? = null,
 ) {
+    /** Originaltitel, falls er sich vom angezeigten Titel unterscheidet. */
+    val differingOriginalTitle: String?
+        get() = (originalTitle ?: originalName)?.takeIf { it.isNotBlank() && it != displayTitle }
+
     val displayTitle: String
         get() = title ?: name ?: "Unknown title"
 
@@ -145,14 +155,14 @@ interface MovieApiService {
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US"
+        @Query("language") language: String = TmdbConfig.language
     ): MovieSearchResponse
 
     @GET("tv/{id}")
     suspend fun getTvDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String = TmdbConfig.language,
         @Query("append_to_response") appendToResponse: String = "credits"
     ): TvDetails
 
@@ -160,9 +170,15 @@ interface MovieApiService {
     suspend fun getMovieDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String = TmdbConfig.language,
         @Query("append_to_response") appendToResponse: String = "credits"
     ): MovieDetails
+}
+
+/** Aktive TMDB-Sprache – wird von den Einstellungen gesetzt (Default: bisher en-US). */
+object TmdbConfig {
+    @Volatile
+    var language: String = "en-US"
 }
 
 object MovieApi {

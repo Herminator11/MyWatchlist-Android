@@ -1,4 +1,8 @@
 package com.example.mywatchlist.ui.viewmodel
+import com.example.mywatchlist.data.ContentPrefs
+import com.example.mywatchlist.data.remote.TmdbConfig
+import kotlinx.coroutines.flow.onEach
+import java.util.Locale
 import com.example.mywatchlist.data.ListPrefs
 import com.example.mywatchlist.data.AppearancePrefs
 import com.example.mywatchlist.data.NavConfig
@@ -55,6 +59,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val current = listPrefs.value ?: return
         val next = transform(current)
         if (next != current) viewModelScope.launch { repository.setListPrefs(next) }
+    }
+
+    // Setzt bei jeder Änderung die TMDB-Sprache für alle folgenden API-Aufrufe
+    val contentPrefs: StateFlow<ContentPrefs> = repository.contentPrefs
+        .onEach { TmdbConfig.language = it.tmdbLanguage.resolve(Locale.getDefault()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ContentPrefs())
+
+    fun updateContentPrefs(transform: (ContentPrefs) -> ContentPrefs) {
+        val next = transform(contentPrefs.value)
+        if (next != contentPrefs.value) viewModelScope.launch { repository.setContentPrefs(next) }
     }
 
     fun resetNavConfig() {

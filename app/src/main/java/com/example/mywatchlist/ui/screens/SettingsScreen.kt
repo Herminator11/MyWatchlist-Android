@@ -1,4 +1,8 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.ContentPrefs
+import com.example.mywatchlist.data.TmdbLanguage
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Language
 import com.example.mywatchlist.data.ListPrefs
 import com.example.mywatchlist.data.CardDensity
 import com.example.mywatchlist.data.ListSort
@@ -72,6 +76,8 @@ fun SettingsScreen(
     onAppearanceChange: ((AppearancePrefs) -> AppearancePrefs) -> Unit = {},
     listPrefs: ListPrefs = ListPrefs(),
     onListPrefsChange: ((ListPrefs) -> ListPrefs) -> Unit = {},
+    contentPrefs: ContentPrefs = ContentPrefs(),
+    onContentPrefsChange: ((ContentPrefs) -> ContentPrefs) -> Unit = {},
     exportCounts: Map<ExportList, Int>,
     onBuildExportText: (Set<ExportList>) -> String?
 ) {
@@ -297,6 +303,42 @@ fun SettingsScreen(
                     onSelect = { v -> onListPrefsChange { it.copy(watchlistStartTab = v) } }
                 )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── SEKTION: INHALT & SPRACHE ─────────────────────
+            SettingsSectionHeader(stringResource(R.string.settings_section_content))
+            SettingsCard {
+                SettingsChoiceRow(
+                    icon = Icons.Filled.Translate,
+                    title = stringResource(R.string.settings_tmdb_language),
+                    options = listOf(
+                        TmdbLanguage.EN to "English",
+                        TmdbLanguage.DE to "Deutsch",
+                        TmdbLanguage.ES to "Español",
+                        TmdbLanguage.FR to "Français",
+                        TmdbLanguage.IT to "Italiano",
+                        TmdbLanguage.JA to "日本語",
+                        TmdbLanguage.SYSTEM to stringResource(R.string.tmdb_language_system),
+                    ),
+                    selected = contentPrefs.tmdbLanguage,
+                    onSelect = { v -> onContentPrefsChange { it.copy(tmdbLanguage = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsSwitchRow(
+                    icon = Icons.Filled.Language,
+                    title = stringResource(R.string.settings_original_titles),
+                    subtitle = stringResource(R.string.settings_original_titles_desc),
+                    checked = contentPrefs.showOriginalTitles,
+                    onChange = { v -> onContentPrefsChange { it.copy(showOriginalTitles = v) } }
+                )
+            }
+            Text(
+                text = stringResource(R.string.settings_tmdb_language_note),
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                color = AppTheme.TextSecondary,
+                modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 

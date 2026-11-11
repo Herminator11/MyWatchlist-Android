@@ -34,6 +34,23 @@ class SettingsRepository(private val context: Context) {
         private val KEY_SORT_WATCHLIST = stringPreferencesKey("sort_watchlist")
         private val KEY_SORT_WATCHING = stringPreferencesKey("sort_watching")
         private val KEY_WATCHLIST_TAB = stringPreferencesKey("watchlist_start_tab")
+        private val KEY_TMDB_LANGUAGE = stringPreferencesKey("tmdb_language")
+        private val KEY_ORIGINAL_TITLES = booleanPreferencesKey("show_original_titles")
+    }
+
+    val contentPrefs: Flow<ContentPrefs> = context.dataStore.data.map { p ->
+        val d = ContentPrefs()
+        ContentPrefs(
+            tmdbLanguage = enumOrDefault(p[KEY_TMDB_LANGUAGE], d.tmdbLanguage),
+            showOriginalTitles = p[KEY_ORIGINAL_TITLES] ?: d.showOriginalTitles,
+        )
+    }
+
+    suspend fun setContentPrefs(prefs: ContentPrefs) {
+        context.dataStore.edit { p ->
+            p[KEY_TMDB_LANGUAGE] = prefs.tmdbLanguage.name
+            p[KEY_ORIGINAL_TITLES] = prefs.showOriginalTitles
+        }
     }
 
     val listPrefs: Flow<ListPrefs> = context.dataStore.data.map { p ->

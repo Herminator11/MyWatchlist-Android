@@ -100,6 +100,12 @@
     <string name="nav_settings_search_locked">Search always stays visible</string>
     <string name="settings_section_data">Data</string>
     <string name="settings_section_lists">Lists</string>
+    <string name="settings_section_content">Content &amp; language</string>
+    <string name="settings_tmdb_language">Title &amp; description language</string>
+    <string name="tmdb_language_system">Device language</string>
+    <string name="settings_tmdb_language_note">Applies to search and details. Titles already saved in your lists stay as they are.</string>
+    <string name="settings_original_titles">Show original titles</string>
+    <string name="settings_original_titles_desc">In search, below the translated title</string>
     <string name="settings_density">Card style</string>
     <string name="density_comfortable">Comfortable</string>
     <string name="density_compact">Compact</string>

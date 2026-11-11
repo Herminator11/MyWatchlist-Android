@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.cards.LocalContentPrefs
 import androidx.compose.ui.platform.LocalResources
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
@@ -467,6 +468,17 @@ private fun SearchResultCard(
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 20.sp
                 )
+                // Originaltitel (Einstellung „Originaltitel zeigen“)
+                val original = movie.differingOriginalTitle
+                if (LocalContentPrefs.current.showOriginalTitles && original != null) {
+                    Text(
+                        text = original,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                        color = AppTheme.TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),

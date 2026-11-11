@@ -201,6 +201,7 @@ fun MainScreenApp() {
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
     val appearance by settingsViewModel.appearance.collectAsStateWithLifecycle()
     val listPrefs by settingsViewModel.listPrefs.collectAsStateWithLifecycle()
+    val contentPrefs by settingsViewModel.contentPrefs.collectAsStateWithLifecycle()
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -225,6 +226,8 @@ fun MainScreenApp() {
                 onAppearanceChange = { settingsViewModel.updateAppearance(it) },
                 listPrefs = listPrefs ?: ListPrefs(),
                 onListPrefsChange = { settingsViewModel.updateListPrefs(it) },
+                contentPrefs = contentPrefs,
+                onContentPrefsChange = { settingsViewModel.updateContentPrefs(it) },
                 exportCounts = exportCounts,
                 onBuildExportText = { selection ->
                     libraryViewModel.buildExportText(context, selection)
