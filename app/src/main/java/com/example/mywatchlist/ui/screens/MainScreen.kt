@@ -4,6 +4,7 @@ import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import com.example.mywatchlist.R
 import com.example.mywatchlist.ui.viewmodel.*
 
@@ -224,14 +225,14 @@ private fun MainContent(onOpenSettings: () -> Unit) {
 
     // App-weite Undo-Snackbar fürs Löschen aus Listen
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val resources = LocalResources.current
     LaunchedEffect(libraryViewModel) {
         libraryViewModel.events.collect { event ->
             when (event) {
                 is LibraryViewModel.LibraryEvent.Deleted -> {
                     val result = snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.snackbar_deleted, event.movie.title),
-                        actionLabel = context.getString(R.string.action_undo),
+                        message = resources.getString(R.string.snackbar_deleted, event.movie.title),
+                        actionLabel = resources.getString(R.string.action_undo),
                         duration = SnackbarDuration.Short
                     )
                     if (result == SnackbarResult.ActionPerformed) {

@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.platform.LocalResources
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import androidx.compose.ui.res.stringResource
@@ -62,6 +63,8 @@ fun SearchScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+    // Ressourcen über LocalResources → reagiert korrekt auf Konfigurationswechsel
+    val resources = LocalResources.current
     var selectedMovieForAdd by remember { mutableStateOf<TmdbMovie?>(null) }
     var movieForDetail by remember { mutableStateOf<TmdbMovie?>(null) }
 
@@ -83,8 +86,8 @@ fun SearchScreen(
             libraryViewModel.addNewCard(movie, WatchListType.WANT_TO_WATCH)
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.snackbar_added_to_watchlist, movie.displayTitle),
-                    actionLabel = context.getString(R.string.action_undo),
+                    message = resources.getString(R.string.snackbar_added_to_watchlist, movie.displayTitle),
+                    actionLabel = resources.getString(R.string.action_undo),
                     duration = SnackbarDuration.Short
                 )
                 if (result == SnackbarResult.ActionPerformed) {

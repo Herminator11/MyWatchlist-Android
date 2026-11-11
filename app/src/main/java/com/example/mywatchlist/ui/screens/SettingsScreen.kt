@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 
@@ -44,6 +45,8 @@ fun SettingsScreen(
     onBuildExportText: (Set<ExportList>) -> String?
 ) {
     val context = LocalContext.current
+    // Ressourcen über LocalResources → reagiert korrekt auf Konfigurationswechsel
+    val resources = LocalResources.current
     // Themed Toasts (compose-sonner) statt System-Toast.makeText
     val toaster = rememberToasterState()
 
@@ -62,9 +65,9 @@ fun SettingsScreen(
             context.contentResolver.openOutputStream(uri)?.use { out ->
                 out.write(text.toByteArray())
             } ?: throw java.io.IOException("openOutputStream returned null")
-            toaster.show(context.getString(R.string.export_saved), type = ToastType.Success)
+            toaster.show(resources.getString(R.string.export_saved), type = ToastType.Success)
         } catch (e: Exception) {
-            toaster.show(context.getString(R.string.export_failed), type = ToastType.Error)
+            toaster.show(resources.getString(R.string.export_failed), type = ToastType.Error)
         }
     }
 
@@ -72,7 +75,7 @@ fun SettingsScreen(
     fun startExport(selection: Set<ExportList>, fileName: String) {
         val text = onBuildExportText(selection)
         if (text == null) {
-            toaster.show(context.getString(R.string.export_nothing), type = ToastType.Info)
+            toaster.show(resources.getString(R.string.export_nothing), type = ToastType.Info)
             return
         }
         pendingExport = text
