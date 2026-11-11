@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.components.cards
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import com.example.mywatchlist.data.CardDensity
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
@@ -51,7 +53,7 @@ import com.example.mywatchlist.ui.theme.AppTheme
 // onClick      → Detail-Popup öffnen
 // onLongClick  → Bearbeiten (ersetzt die alte Swipe-Geste)
 // ─────────────────────────────────────────────
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun UniversalMediaCard(
     item: MovieEntity,
@@ -154,9 +156,12 @@ fun UniversalMediaCard(
                     ?: if (!prefs.showYear) null
                     else if (item.date.length >= 4) item.date.take(4) else item.date.ifBlank { null }
 
-                Row(
+                // FlowRow: passen Jahr/Typ/Kategorie nicht in eine Zeile, rutscht ein
+                // ganzer Badge in die nächste Zeile – statt mitten im Wort umzubrechen.
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    itemVerticalAlignment = Alignment.CenterVertically
                 ) {
                     if (displayDate != null) {
                         Text(
@@ -179,7 +184,9 @@ fun UniversalMediaCard(
                                 letterSpacing = 1.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = AppTheme.TextSecondary,
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
                             )
                         }
                     }
@@ -192,7 +199,9 @@ fun UniversalMediaCard(
                                 letterSpacing = 1.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = AppTheme.GoldBright,
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
                             )
                         }
                     }
