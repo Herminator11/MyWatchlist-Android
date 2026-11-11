@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyWatchlist A/B</title>
+<style>
+@font-face { font-family: "Bebas"; src: url("fonts/bebas_neue_regular.ttf") format("truetype"); }
+@font-face { font-family: "Barlow"; src: url("fonts/barlow_regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Barlow"; src: url("fonts/barlow_semibold.ttf") format("truetype"); font-weight: 600; }
+@font-face { font-family: "SpaceMono"; src: url("fonts/space_mono_regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "SpaceMono"; src: url("fonts/space_mono_bold.ttf") format("truetype"); font-weight: 700; }
+
+:root {
+  --ink: #0b0b0d; --surface: #161519; --surface2: #242228;
+  --gold: #e9b949; --gold-bright: #ffd874; --ember: #7a4a12;
+  --text: #f4ece0; --text2: #a89f8e; --text3: #6e685e;
+  --hair: rgba(233,185,73,.2); --a: #7fa7d9; --b: #e9b949; --danger: #e5484d;
+  --display: "Bebas", Impact, sans-serif; --body: "Barlow", "Helvetica Neue", sans-serif; --mono: "SpaceMono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background:
+    radial-gradient(1200px 600px at 70% -10%, rgba(233,185,73,.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 30%, rgba(127,167,217,.06), transparent 60%),
+    linear-gradient(180deg, #17141a 0%, #0d0c0f 45%, #070708 100%);
+  background-attachment: fixed;
+  color: var(--text); font-family: var(--body); font-size: 15px; line-height: 1.45;
+  min-height: 100vh; overflow-x: hidden;
+}
+/* Filmkorn */
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .05; z-index: 50;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 16px 80px; }
+.mono { font-family: var(--mono); }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--text2); }
+
+/* ── Kopf: Filmklappe ── */
+header.slate { padding: 28px 0 18px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end;
+  animation: rise .6s cubic-bezier(.2,.8,.2,1) both; }
+.stripes { height: 14px; border-radius: 4px; margin-bottom: 18px;
+  background: repeating-linear-gradient(-45deg, var(--text) 0 18px, var(--ink) 18px 36px); opacity: .9; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(44px, 7vw, 84px); line-height: .9; margin: 0; letter-spacing: .01em; }
+h1 em { font-style: normal; color: var(--gold); }
+.sub { margin-top: 8px; color: var(--text2); max-width: 62ch; }
+.take { text-align: right; }
+.take .big { font-family: var(--display); font-size: 40px; color: var(--gold); line-height: 1; }
+
+/* ── Steuerleiste ── */
+.controls { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  padding: 12px 0; margin-bottom: 18px; border-bottom: 1px solid var(--hair);
+  background: linear-gradient(180deg, rgba(11,11,13,.96), rgba(11,11,13,.85)); backdrop-filter: blur(8px);
+  animation: rise .6s .08s cubic-bezier(.2,.8,.2,1) both; }
+.group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--surface2); border-radius: 999px; padding: 3px; flex-wrap: wrap; }
+.seg button { font: 700 12px/1 var(--mono); letter-spacing: .06em; color: var(--text2); background: none; border: 0;
+  padding: 9px 12px; border-radius: 999px; cursor: pointer; min-height: 34px; transition: background .2s, color .2s; }
+.seg button:hover { color: var(--text); }
+.seg button[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+.seg button:disabled { opacity: .45; cursor: not-allowed; }
+.seg button:focus-visible, .btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+.kbd { font: 11px var(--mono); color: var(--text3); }
+.kbd b { color: var(--text2); border: 1px solid var(--surface2); border-radius: 4px; padding: 1px 5px; font-weight: 400; }
+
+/* ── Bühne ── */
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+.frames { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; animation: rise .7s .14s cubic-bezier(.2,.8,.2,1) both; }
+.device { position: relative; width: min(340px, 100%); }
+.phone { position: relative; border-radius: 38px; padding: 10px; background: linear-gradient(145deg, #2a272e, #121114);
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,.8), inset 0 0 0 1px rgba(255,255,255,.06); }
+.screen { position: relative; border-radius: 29px; overflow: hidden; aspect-ratio: 1233 / 2673; background: var(--ink); }
+.screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
+.tag { position: absolute; top: -12px; left: 18px; z-index: 3; font: 700 12px/1 var(--mono); letter-spacing: .12em;
+  padding: 7px 10px; border-radius: 6px; color: var(--ink); }
+.tag.a { background: var(--a); } .tag.b { background: var(--b); }
+.caption { margin-top: 12px; text-align: center; }
+
+/* Slider-Overlay */
+.overlay .b-layer { clip-path: inset(0 0 0 var(--cut, 50%)); }
+.split-line { position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; background: var(--gold-bright); z-index: 2;
+  box-shadow: 0 0 12px rgba(255,216,116,.6); pointer-events: none; }
+.split-line::after { content: "A │ B"; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font: 700 10px var(--mono); background: var(--gold); color: var(--ink); padding: 6px 7px; border-radius: 999px; white-space: nowrap; }
+.range { width: 100%; margin-top: 14px; accent-color: var(--gold); }
+
+/* Umschalten */
+.flip .b-layer { opacity: 0; transition: opacity .18s; }
+.flip.show-b .b-layer { opacity: 1; }
+.flip-state { font-family: var(--display); font-size: 30px; letter-spacing: .04em; }
+
+/* ── Seitenleiste ── */
+aside { display: grid; gap: 16px; animation: rise .7s .2s cubic-bezier(.2,.8,.2,1) both; }
+.card { background: linear-gradient(180deg, rgba(22,21,25,.95), rgba(16,15,18,.95)); border: 1px solid var(--surface2); border-radius: 16px; padding: 18px; }
+.card h2 { font-family: var(--display); font-weight: 400; font-size: 28px; margin: 4px 0 10px; letter-spacing: .02em; }
+.changes { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.changes li { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+.changes .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); margin-top: 7px; }
+.changes .why { color: var(--text2); font-size: 13.5px; }
+.commit { font: 11px var(--mono); color: var(--gold-bright); background: rgba(233,185,73,.1); padding: 1px 6px; border-radius: 4px; }
+.vote { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0 12px; }
+.vote label { position: relative; }
+.vote input { position: absolute; opacity: 0; }
+.vote span { display: block; text-align: center; padding: 12px 0; border-radius: 10px; border: 1px solid var(--surface2);
+  font: 700 13px var(--mono); color: var(--text2); cursor: pointer; transition: all .2s; }
+.vote input:checked + span { color: var(--ink); border-color: transparent; }
+.vote input[value="A"]:checked + span { background: var(--a); }
+.vote input[value="B"]:checked + span { background: var(--b); }
+.vote input[value="egal"]:checked + span { background: var(--text2); }
+.vote input:focus-visible + span { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+textarea { width: 100%; min-height: 84px; resize: vertical; background: var(--ink); color: var(--text); border: 1px solid var(--surface2);
+  border-radius: 10px; padding: 10px; font: 14px var(--body); }
+.btn { font: 700 12px var(--mono); letter-spacing: .06em; color: var(--gold); background: transparent; border: 1px solid rgba(233,185,73,.5);
+  border-radius: 10px; padding: 10px 14px; cursor: pointer; min-height: 40px; }
+.btn:hover { background: rgba(233,185,73,.08); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.progress { display: flex; gap: 4px; margin-top: 10px; }
+.progress i { flex: 1; height: 4px; border-radius: 2px; background: var(--surface2); }
+.progress i.done { background: var(--gold); }
+
+/* ── Abschnitte ── */
+section.block { margin-top: 64px; }
+section.block > .head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--hair); padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+section.block h3 { font-family: var(--display); font-weight: 400; font-size: 44px; margin: 0; line-height: 1; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.colhead { font: 700 12px var(--mono); letter-spacing: .14em; margin-bottom: 10px; }
+.colhead.a { color: var(--a); } .colhead.b { color: var(--b); }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.sw { border-radius: 12px; overflow: hidden; border: 1px solid var(--surface2); background: var(--surface); }
+.sw .chip { height: 54px; }
+.sw .meta { padding: 8px 10px; font: 11px var(--mono); color: var(--text2); }
+.sw .meta b { display: block; color: var(--text); font: 600 13px var(--body); margin-bottom: 2px; }
+.sw.new { border-color: rgba(233,185,73,.6); }
+.sw.changed .meta b::after { content: " ●"; color: var(--gold); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--surface2); vertical-align: top; }
+th { font: 700 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text2); }
+td.a { color: #c9d6e8; } td.b { color: var(--text); }
+.typo-sample { display: grid; gap: 6px; }
+.shape-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.shape { width: 62px; height: 62px; background: var(--surface2); border: 1px solid var(--hair); display: grid; place-items: end center; padding-bottom: 4px; font: 10px var(--mono); color: var(--text2); }
+.scroll-x { overflow-x: auto; }
+.motion-frames { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.placeholder { aspect-ratio: 9 / 16; max-height: 420px; border-radius: 18px; border: 1px dashed var(--surface2); display: grid; place-items: center;
+  text-align: center; color: var(--text3); padding: 20px; background: repeating-linear-gradient(-45deg, rgba(255,255,255,.015) 0 10px, transparent 10px 20px); }
+.note { color: var(--text2); font-size: 13.5px; }
+footer { margin-top: 70px; color: var(--text3); font: 11px var(--mono); letter-spacing: .08em; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (max-width: 980px) { .stage { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  header.slate { grid-template-columns: 1fr; } .take { text-align: left; }
+  .grid2, .motion-frames { grid-template-columns: 1fr; }
+  .frames { gap: 22px; } .controls { position: static; }
+  section.block h3 { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="slate">
+    <div>
+      <div class="stripes" aria-hidden="true"></div>
+      <div class="label">MyWatchlist · Design-Overhaul · 11.11.2026</div>
+      <h1>Variante <em>A</em> gegen <em>B</em></h1>
+      <p class="sub">A = Stand <span class="mono">main</span> (deine aktuelle App). B = Branch <span class="mono">design-overhaul/2026-11-11</span>. Beide wurden mit identischen Beispieldaten auf der JVM gerendert (Roborazzi), ohne Gerät und ohne deine echte Datenbank.</p>
+    </div>
+    <div class="take">
+      <div class="label">Bewertet</div>
+      <div class="big" id="ratedCount">0 / 7</div>
+      <div class="progress" id="progress" aria-hidden="true"></div>
+    </div>
+  </header>
+
+  <nav class="controls" aria-label="Vergleichssteuerung">
+    <div class="group"><span class="label">Screen</span><div class="seg" id="screenSeg" role="group" aria-label="Screen"></div></div>
+    <div class="group"><span class="label">Schrift</span><div class="seg" id="fontSeg" role="group" aria-label="Schriftgröße">
+      <button data-font="fs100" aria-pressed="true">1.0×</button><button data-font="fs150" aria-pressed="false">1.5×</button></div></div>
+    <div class="group"><span class="label">Ansicht</span><div class="seg" id="modeSeg" role="group" aria-label="Ansicht">
+      <button data-mode="side" aria-pressed="true">Nebeneinander</button><button data-mode="overlay" aria-pressed="false">Slider</button><button data-mode="flip" aria-pressed="false">Umschalten</button></div></div>
+    <div class="group"><span class="label">Theme</span><div class="seg" role="group" aria-label="Theme">
+      <button aria-pressed="true">Dunkel</button><button disabled title="Die App ist bewusst nur dunkel">Hell</button></div></div>
+    <div class="kbd"><b>←</b><b>→</b> Screen · <b>1</b><b>2</b> Schrift · <b>A</b><b>B</b>/<b>Leertaste</b> umschalten · <b>S</b><b>O</b><b>T</b> Ansicht</div>
+  </nav>
+
+  <div class="stage">
+    <div>
+      <div class="frames" id="frames"></div>
+    </div>
+    <aside>
+      <div class="card">
+        <div class="label" id="screenLabel">Screen</div>
+        <h2 id="screenTitle">—</h2>
+        <ul class="changes" id="changes"></ul>
+      </div>
+      <div class="card">
+        <div class="label">Deine Bewertung</div>
+        <h2>Was gefällt dir besser?</h2>
+        <div class="vote" id="vote" role="radiogroup" aria-label="Bewertung">
+          <label><input type="radio" name="vote" value="A"><span>A</span></label>
+          <label><input type="radio" name="vote" value="B"><span>B</span></label>
+          <label><input type="radio" name="vote" value="egal"><span>egal</span></label>
+        </div>
+        <label class="label" for="note">Notiz</label>
+        <textarea id="note" placeholder="Was fällt dir auf? Was fehlt?"></textarea>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="exportJson">Export JSON</button>
+          <button class="btn" id="exportMd">Export Markdown</button>
+        </div>
+        <p class="note" id="storageNote" style="margin-bottom:0">Wird lokal in diesem Browser gespeichert.</p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="block" aria-labelledby="tok">
+    <div class="head"><h3 id="tok">Token-Vergleich</h3><span class="label">Farben · Typografie · Shapes · Motion</span></div>
+    <div class="grid2">
+      <div><div class="colhead a">A · VORHER</div><div class="swatches" id="swA"></div></div>
+      <div><div class="colhead b">B · NACHHER</div><div class="swatches" id="swB"></div></div>
+    </div>
+    <p class="note">● = Wert geändert · goldener Rand = neues Token. In B hängen alle Farben an <span class="mono">LocalCinemaColors</span> und sind zur Laufzeit austauschbar (Basis für die geplante Akzentfarben-Einstellung).</p>
+
+    <div class="scroll-x" style="margin-top:28px">
+      <table>
+        <thead><tr><th>Bereich</th><th>A · vorher</th><th>B · nachher</th></tr></thead>
+        <tbody>
+          <tr><td>Typografie</td><td class="a">Nur <span class="mono">bodyLarge</span> definiert, 88× <span class="mono">fontSize</span> direkt in Screens, kleinste Schrift 9 sp</td>
+            <td class="b"><div class="typo-sample">
+              <span style="font-family:var(--display);font-size:30px;line-height:1">DISPLAY · BEBAS NEUE</span>
+              <span style="font-weight:600;font-size:16px">Title · Barlow SemiBold 16</span>
+              <span style="font-size:14px">Body · Barlow 14 – gut lesbar in dichten Listen</span>
+              <span class="mono" style="font-weight:700;font-size:11px;letter-spacing:.1em">LABEL · SPACE MONO 11 (MINIMUM)</span>
+            </div>Vollständige M3-Skala <span class="mono">CinemaTypography</span></td></tr>
+          <tr><td>Shapes</td><td class="a">Verstreute <span class="mono">RoundedCornerShape(…)</span>-Literale, kein <span class="mono">Shapes</span>-Objekt</td>
+            <td class="b"><div class="shape-row">
+              <div class="shape" style="border-radius:6px">6</div><div class="shape" style="border-radius:12px">12</div><div class="shape" style="border-radius:16px">16</div><div class="shape" style="border-radius:20px">20</div><div class="shape" style="border-radius:32px">32</div>
+            </div><span class="mono" style="font-size:12px">CinemaShapes</span>: Tag · Button · Karte · Chip/Sheet · Navigation</td></tr>
+          <tr><td>Motion</td><td class="a"><span class="mono">tween(250/420/480/560)</span> mit verschiedenen Easings + einzelner <span class="mono">spring</span>; „Animationen entfernen“ ignoriert; Listen springen</td>
+            <td class="b"><span class="mono">CinemaMotion</span>: spatial (Spring 0.82), bouncy (Nav-Signatur), effects (ohne Überschwingen); <span class="mono">snap()</span> bei reduzierter Animation; <span class="mono">animateItem()</span> in Listen</td></tr>
+          <tr><td>Toasts</td><td class="a">System-<span class="mono">Toast.makeText</span></td><td class="b">compose-sonner im Noir-Look (gestapelt, wischbar)</td></tr>
+          <tr><td>Accessibility</td><td class="a">Feste Kartenhöhe 110 dp (Text abgeschnitten bei 1.5×), Settings-Ziel 26 dp, Nav ohne Tab-Semantik, Tertiärtext-Kontrast ≈ 1.9 : 1</td>
+            <td class="b">Karten wachsen mit, 48-dp-Ziele, <span class="mono">Role.Tab</span> + ausgewählt-Status, Kontrast ≈ 3.3 : 1</td></tr>
+          <tr><td>System</td><td class="a">Edge-to-Edge nur ab Android 15 (erzwungen), kein Predictive Back</td><td class="b">Edge-to-Edge überall, Predictive Back aktiviert</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="mot">
+    <div class="head"><h3 id="mot">Motion</h3><span class="label">folgt mit Handy</span></div>
+    <div class="motion-frames">
+      <div><div class="colhead a">A · VORHER</div><div class="placeholder"><div><b style="color:var(--text2)">Aufnahme ausstehend</b><br><span class="mono" style="font-size:12px">adb shell screenrecord → WebM</span><br>Header-Auftritt, Nav-Bounce, Löschen/Verschieben in Listen</div></div></div>
+      <div><div class="colhead b">B · NACHHER</div><div class="placeholder"><div><b style="color:var(--text2)">Aufnahme ausstehend</b><br>Wird synchron abspielbar eingebunden, sobald „MyWatchList 2“ auf dem Handy läuft.</div></div></div>
+    </div>
+    <p class="note">Screenshots zeigen keine Bewegung. Auf der JVM fehlen außerdem der echte Glas-Blur der Navigation und echte Poster (hier: Farbverläufe als Platzhalter). Im Detail-Dialog zeigen die Punkte, dass die TMDB-Daten im Test nicht geladen werden.</p>
+  </section>
+
+  <section class="block" aria-labelledby="apk">
+    <div class="head"><h3 id="apk">Build</h3><span class="label">optional</span></div>
+    <div class="scroll-x"><table>
+      <thead><tr><th>Variante</th><th>Paket</th><th>APK (Debug)</th><th>Frame-Zeiten</th></tr></thead>
+      <tbody>
+        <tr><td>A · Original</td><td class="mono">com.example.mywatchlist</td><td>—</td><td>— (Gerät nötig)</td></tr>
+        <tr><td>B · MyWatchList 2</td><td class="mono">com.example.mywatchlist.v2</td><td>20.3 MB</td><td>— (Gerät nötig)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer>RENDER: ROBORAZZI 1.78 · ROBOLECTRIC 4.17 · SDK 35 · 411×891 DP XXHDPI · IN-MEMORY ROOM · KEINE ECHTEN DATEN</footer>
+</div>
+
+<script>
+(() => {
+  const C = {
+    theme: "495db88", a11y: "289f8e0", toasts: "0ad4dc9", picker: "8d16e5e",
+    states: "f8d6a53", motion: "54be840", system: "6b8058a", perf: "c39aa44", lint: "aa4e3d3"
+  };
+  const GLOBAL = [
+    ["Navigation: 48-dp-Ziele und Tab-Semantik", "TalkBack sagt jetzt „Tab, ausgewählt“; Icon-Bounce nutzt das gemeinsame Spring-Schema.", [C.a11y, C.motion]],
+    ["Settings-Zahnrad als IconButton", "Das Touch-Ziel wächst von 26 dp auf 48 dp, sichtbar bleibt es gleich.", [C.a11y]],
+  ];
+  const SCREENS = [
+    { id: "watching", name: "Am Schauen", route: "Currently Watching", changes: [
+      ["Karten wachsen bei großer Schrift mit", "Bei 1.5× wird in A der SERIES-Tag der letzten Karte abgeschnitten, in B nicht (Schrift 1.5× wählen).", [C.a11y]],
+      ["Fertig-Button 48 dp mit Button-Rolle", "Gleiche Optik, größeres Ziel, TalkBack-Label aus strings.xml.", [C.a11y]],
+      ["Listen animieren statt zu springen", "animateItem() beim Abhaken/Verschieben.", [C.motion]],
+      ["Thumbnails in w185 statt w500", "Spart Speicher und Datenvolumen, gleiche Optik bei 75 dp.", [C.a11y, C.perf]],
+    ]},
+    { id: "watchlist", name: "Watchlist", route: "Want to Watch", changes: [
+      ["Leer-Zustand mit Icon und Hinweis", "Statt eines grauen Satzes (hier mit Daten nicht sichtbar).", [C.states]],
+      ["Gemeinsamer Datumsdialog", "Vier Kopien wurden zu einer Komponente, das Verhalten bleibt gleich.", [C.picker]],
+      ["Labels mindestens 11 sp", "Typ-Tags waren 9 sp.", [C.a11y]],
+    ]},
+    { id: "history", name: "Verlauf", route: "Recently Watched", changes: [
+      ["Leer- und Kein-Treffer-Zustand", "Eigenes Icon für „Filter findet nichts“.", [C.states]],
+      ["Listen animieren", "animateItem() pro Eintrag.", [C.motion]],
+    ]},
+    { id: "favorites", name: "Favoriten", route: "Favorites", changes: [
+      ["Kategorie-Chips mit stabilen Keys", "Keine unnötigen Recompositions beim Filtern.", [C.perf]],
+      ["Leer-Zustand je Kategorie", "Herz-Medaillon statt Grautext.", [C.states]],
+    ]},
+    { id: "search", name: "Suche", route: "Search", changes: [
+      ["Suchkarten wachsen mit", "Wie in den Listen: Mindesthöhe statt fester Höhe.", [C.a11y]],
+      ["Strings über LocalResources", "Reagiert korrekt auf Sprach- und Konfigurationswechsel.", [C.lint]],
+    ]},
+    { id: "settings", name: "Einstellungen", route: "Settings", changes: [
+      ["Toasts im App-Look", "compose-sonner statt System-Toast beim Export (erst beim Export sichtbar).", [C.toasts]],
+      ["Kontrast Tertiärtext", "Chevrons und Versionszeile ≈ 3.3 : 1 statt ≈ 1.9 : 1.", [C.theme]],
+    ]},
+    { id: "detail", name: "Detail-Dialog", route: "Media Detail", changes: [
+      ["Eine Palette statt zwei", "CinemaTheme und AppTheme waren doppelt definiert, jetzt kommt alles aus LocalCinemaColors.", [C.theme]],
+      ["Mindestschrift 11 sp", "Datenblatt-Labels waren 10 sp.", [C.a11y]],
+    ]},
+  ];
+
+  const COLORS_A = [
+    ["Grund","#0B0B0D"],["Fläche","#161519"],["Fläche 2","#242228"],["Akzent","#E9B949"],["Gold hell","#FFD874"],
+    ["Ember","#7A4A12"],["Text","#F4ECDD"],["Text 2","#A89F8E"],["Text 3","#4A4640"],["Auf Akzent","Color.Black"]
+  ];
+  const COLORS_B = [
+    ["Grund","#0B0B0D"],["Fläche","#161519"],["Fläche 2","#242228"],["Akzent","#E9B949"],["Gold hell","#FFD874"],
+    ["Ember","#7A4A12"],["Text","#F4ECDD"],["Text 2","#A89F8E"],["Text 3","#6E685E","changed"],["Auf Akzent","#0B0B0D","changed"],
+    ["Danger","#E5484D","new"],["Scrim","#070708 · 70 %","new"]
+  ];
+
+  const KEY = "mywl-ab-ratings-v1";
+  let ratings = {};
+  let storageOk = true;
+  try { ratings = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { storageOk = false; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ratings)); } catch (e) { storageOk = false; } renderProgress(); };
+
+  const state = { screen: 0, font: "fs100", mode: "side", showB: false, cut: 50 };
+  try { const s = JSON.parse(localStorage.getItem(KEY + "-view") || "null"); if (s) Object.assign(state, s, { showB: false }); } catch (e) {}
+  const persistView = () => { try { localStorage.setItem(KEY + "-view", JSON.stringify(state)); } catch (e) {} };
+
+  const $ = (s) => document.querySelector(s);
+  const el = (tag, attrs = {}, html = "") => { const n = document.createElement(tag); Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v)); n.innerHTML = html; return n; };
+  const src = (v) => `screenshots/${v}/${SCREENS[state.screen].id}_${state.font}.png`;
+  const alt = (v) => `${v === "a" ? "Variante A" : "Variante B"}: ${SCREENS[state.screen].name}, Schrift ${state.font === "fs100" ? "1.0" : "1.5"}`;
+
+  // Screen-Buttons
+  const seg = $("#screenSeg");
+  SCREENS.forEach((s, i) => { const b = el("button", { "data-i": i, "aria-pressed": "false" }, s.name); b.onclick = () => { state.screen = i; render(); }; seg.appendChild(b); });
+  document.querySelectorAll("#fontSeg button").forEach(b => b.onclick = () => { state.font = b.dataset.font; render(); });
+  document.querySelectorAll("#modeSeg button").forEach(b => b.onclick = () => { state.mode = b.dataset.mode; render(); });
+
+  function deviceHTML(v) {
+    return `<div class="device"><span class="tag ${v}">${v.toUpperCase()} · ${v === "a" ? "VORHER" : "NACHHER"}</span>
+      <div class="phone"><div class="screen"><img src="${src(v)}" alt="${alt(v)}" loading="eager"></div></div></div>`;
+  }
+
+  function renderFrames() {
+    const f = $("#frames");
+    if (state.mode === "side") {
+      f.innerHTML = deviceHTML("a") + deviceHTML("b");
+    } else if (state.mode === "overlay") {
+      f.innerHTML = `<div class="device overlay" style="--cut:${state.cut}%">
+        <span class="tag a">A</span><span class="tag b" style="left:auto;right:18px">B</span>
+        <div class="phone"><div class="screen">
+          <img src="${src("a")}" alt="${alt("a")}"><img class="b-layer" src="${src("b")}" alt="${alt("b")}">
+          <div class="split-line"></div></div></div>
+        <input class="range" type="range" min="0" max="100" value="${state.cut}" aria-label="Trennlinie zwischen A und B">
+        <div class="caption label">Links A · rechts B</div></div>`;
+      const dev = f.querySelector(".device"), r = f.querySelector(".range"), scr = f.querySelector(".screen");
+      r.oninput = () => { state.cut = +r.value; dev.style.setProperty("--cut", state.cut + "%"); persistView(); };
+      const drag = (e) => { const rect = scr.getBoundingClientRect(); const x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * 100;
+        state.cut = Math.max(0, Math.min(100, Math.round(x))); r.value = state.cut; dev.style.setProperty("--cut", state.cut + "%"); };
+      let down = false;
+      scr.addEventListener("pointerdown", e => { down = true; scr.setPointerCapture(e.pointerId); drag(e); });
+      scr.addEventListener("pointermove", e => { if (down) drag(e); });
+      scr.addEventListener("pointerup", () => { down = false; persistView(); });
+      scr.style.cursor = "ew-resize"; scr.style.touchAction = "none";
+    } else {
+      f.innerHTML = `<div class="device flip ${state.showB ? "show-b" : ""}">
+        <span class="tag ${state.showB ? "b" : "a"}">${state.showB ? "B · NACHHER" : "A · VORHER"}</span>
+        <div class="phone"><div class="screen"><img src="${src("a")}" alt="${alt("a")}"><img class="b-layer" src="${src("b")}" alt="${alt("b")}"></div></div>
+        <div class="caption"><div class="flip-state" aria-live="polite">${state.showB ? "B" : "A"}</div>
+        <button class="btn" id="flipBtn">A ⇄ B umschalten</button></div></div>`;
+      $("#flipBtn").onclick = () => { state.showB = !state.showB; renderFrames(); };
+    }
+  }
+
+  function renderSide() {
+    const s = SCREENS[state.screen];
+    $("#screenLabel").textContent = `${state.screen + 1} / ${SCREENS.length} · ${s.route}`;
+    $("#screenTitle").textContent = s.name;
+    const ul = $("#changes"); ul.innerHTML = "";
+    [...s.changes, ...GLOBAL].forEach(([t, why, cs]) => {
+      ul.appendChild(el("li", {}, `<span class="dot" aria-hidden="true"></span><div><div>${t}</div><div class="why">${why}</div>
+        <div style="margin-top:4px">${cs.map(c => `<span class="commit">${c}</span>`).join(" ")}</div></div>`));
+    });
+    const r = ratings[s.id] || {};
+    document.querySelectorAll('#vote input').forEach(i => i.checked = i.value === r.vote);
+    $("#note").value = r.note || "";
+  }
+
+  function renderProgress() {
+    const done = SCREENS.filter(s => ratings[s.id] && ratings[s.id].vote).length;
+    $("#ratedCount").textContent = `${done} / ${SCREENS.length}`;
+    $("#progress").innerHTML = SCREENS.map(s => `<i class="${ratings[s.id] && ratings[s.id].vote ? "done" : ""}"></i>`).join("");
+    $("#storageNote").textContent = storageOk ? "Wird lokal in diesem Browser gespeichert." : "Speichern im Browser nicht möglich – bitte vor dem Schließen exportieren.";
+  }
+
+  function render() {
+    seg.querySelectorAll("button").forEach((b, i) => b.setAttribute("aria-pressed", String(i === state.screen)));
+    document.querySelectorAll("#fontSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.font === state.font)));
+    document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === state.mode)));
+    renderFrames(); renderSide(); renderProgress(); persistView();
+  }
+
+  document.querySelectorAll('#vote input').forEach(i => i.onchange = () => {
+    const id = SCREENS[state.screen].id; ratings[id] = { ...(ratings[id] || {}), vote: i.value }; save();
+  });
+  $("#note").oninput = (e) => { const id = SCREENS[state.screen].id; ratings[id] = { ...(ratings[id] || {}), note: e.target.value }; save(); };
+
+  const download = (name, text, type) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
+  $("#exportJson").onclick = () => download("mywatchlist-ab-bewertung.json", JSON.stringify({ exportedAt: new Date().toISOString(), branchA: "main", branchB: "design-overhaul/2026-11-11",
+    screens: SCREENS.map(s => ({ screen: s.id, name: s.name, vote: (ratings[s.id] || {}).vote || null, note: (ratings[s.id] || {}).note || "" })) }, null, 2), "application/json");
+  $("#exportMd").onclick = () => download("mywatchlist-ab-bewertung.md",
+    `# MyWatchlist A/B-Bewertung\n\nExportiert: ${new Date().toLocaleString("de-DE")}\n\n| Screen | Wahl | Notiz |\n|---|---|---|\n` +
+    SCREENS.map(s => { const r = ratings[s.id] || {}; return `| ${s.name} | ${r.vote || "–"} | ${(r.note || "").replace(/\n/g, " ").replace(/\|/g, "\\|")} |`; }).join("\n") + "\n", "text/markdown");
+
+  // Tastatur
+  document.addEventListener("keydown", (e) => {
+    const t = e.target instanceof Element ? e.target : null;
+    if (t && t.matches("textarea, input[type=range]")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === "arrowright") { state.screen = (state.screen + 1) % SCREENS.length; render(); }
+    else if (k === "arrowleft") { state.screen = (state.screen - 1 + SCREENS.length) % SCREENS.length; render(); }
+    else if (k === "1") { state.font = "fs100"; render(); }
+    else if (k === "2") { state.font = "fs150"; render(); }
+    else if (k === "s") { state.mode = "side"; render(); }
+    else if (k === "o") { state.mode = "overlay"; render(); }
+    else if (k === "t") { state.mode = "flip"; render(); }
+    else if (k === "a" || k === "b" || k === " ") {
+      if (t && t.closest("button") && k === " ") return;
+      e.preventDefault();
+      if (state.mode !== "flip") state.mode = "flip";
+      state.showB = k === "b" ? true : k === "a" ? false : !state.showB; render();
+    }
+  });
+
+  // Swatches
+  const sw = (list, host) => list.forEach(([n, v, flag]) => {
+    const color = v.startsWith("#") ? v.split(" ")[0] : "#000000";
+    const alpha = v.includes("70 %") ? "opacity:.7;" : "";
+    host.appendChild(el("div", { class: "sw " + (flag || "") }, `<div class="chip" style="background:${color};${alpha}"></div><div class="meta"><b>${n}</b>${v}</div>`));
+  });
+  sw(COLORS_A, $("#swA")); sw(COLORS_B, $("#swB"));
+
+  render();
+})();
+</script>
+</body>
+</html>
