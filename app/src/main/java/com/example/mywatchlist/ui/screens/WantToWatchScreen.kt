@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -705,48 +706,15 @@ private fun MoveToWatchedSheet(
     }
 
     if (showDatePickerDialog) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDateMillis
+        CinemaDatePickerDialog(
+            initialSelectedDateMillis = selectedDateMillis,
+            onConfirm = { millis, display ->
+                selectedDateDisplay = display
+                selectedDateMillis = millis
+                showDatePickerDialog = false
+            },
+            onDismiss = { showDatePickerDialog = false },
+            onConfirmWithoutSelection = { showDatePickerDialog = false }
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePickerDialog = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val millis = datePickerState.selectedDateMillis
-                        if (millis != null) {
-                            val sdf = java.text.SimpleDateFormat(
-                                "dd.MM.yyyy", java.util.Locale.getDefault()
-                            )
-                            selectedDateDisplay = sdf.format(java.util.Date(millis))
-                            selectedDateMillis = millis
-                        }
-                        showDatePickerDialog = false
-                    }
-                ) { Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePickerDialog = false }) {
-                    Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
-                }
-            },
-            colors = DatePickerDefaults.colors(containerColor = AppTheme.DarkSurface)
-        ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    containerColor = AppTheme.DarkSurface,
-                    titleContentColor = AppTheme.TextPrimary,
-                    headlineContentColor = AppTheme.TextPrimary,
-                    weekdayContentColor = AppTheme.TextSecondary,
-                    subheadContentColor = AppTheme.TextSecondary,
-                    dayContentColor = AppTheme.TextPrimary,
-                    selectedDayContainerColor = AppTheme.YellowAccent,
-                    selectedDayContentColor = AppTheme.OnAccent,
-                    todayContentColor = AppTheme.YellowAccent,
-                    todayDateBorderColor = AppTheme.YellowAccent
-                )
-            )
-        }
     }
 }

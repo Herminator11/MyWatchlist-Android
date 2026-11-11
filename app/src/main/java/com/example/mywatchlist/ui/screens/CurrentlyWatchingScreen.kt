@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -114,52 +115,13 @@ fun CurrentlyWatchingScreen(
 // ─────────────────────────────────────────────
 // DATE PICKER DIALOG (Story 3.2)
 // ─────────────────────────────────────────────
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FinishedDatePickerDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState()
-
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val millis = datePickerState.selectedDateMillis
-                    if (millis != null) {
-                        val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault())
-                        onConfirm(sdf.format(java.util.Date(millis)))
-                    }
-                }
-            ) {
-                Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
-            }
-        },
-        colors = DatePickerDefaults.colors(
-            containerColor = AppTheme.DarkSurface
-        )
-    ) {
-        DatePicker(
-            state = datePickerState,
-            colors = DatePickerDefaults.colors(
-                containerColor = AppTheme.DarkSurface,
-                titleContentColor = AppTheme.TextPrimary,
-                headlineContentColor = AppTheme.TextPrimary,
-                weekdayContentColor = AppTheme.TextSecondary,
-                subheadContentColor = AppTheme.TextSecondary,
-                dayContentColor = AppTheme.TextPrimary,
-                selectedDayContainerColor = AppTheme.YellowAccent,
-                selectedDayContentColor = AppTheme.OnAccent,
-                todayContentColor = AppTheme.YellowAccent,
-                todayDateBorderColor = AppTheme.YellowAccent
-            )
-        )
-    }
+    CinemaDatePickerDialog(
+        onConfirm = { _, display -> onConfirm(display) },
+        onDismiss = onDismiss
+    )
 }
