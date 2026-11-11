@@ -69,7 +69,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.mywatchlist.ui.theme.CinemaTheme
+import com.example.mywatchlist.ui.theme.AppTheme
 import com.example.mywatchlist.ui.theme.DisplaySerif
 import com.example.mywatchlist.ui.theme.SpecMono
 import kotlinx.coroutines.delay
@@ -224,21 +224,21 @@ fun MediaDetailDialog(
                     alpha = containerAlpha
                 },
             shape = RoundedCornerShape(22.dp),
-            color = CinemaTheme.Ink
+            color = AppTheme.DarkBg
         ) {
             Box(
                 modifier = Modifier
                     // Tiefe: vertikaler Charcoal→Ink Verlauf …
                     .background(
                         Brush.verticalGradient(
-                            listOf(CinemaTheme.Charcoal, CinemaTheme.Ink)
+                            listOf(AppTheme.DarkSurface, AppTheme.DarkBg)
                         )
                     )
                     // … plus warmer Lichtschein oben links wie ein Spot.
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                CinemaTheme.Gold.copy(alpha = 0.16f),
+                                AppTheme.YellowAccent.copy(alpha = 0.16f),
                                 Color.Transparent
                             ),
                             radius = 520f
@@ -273,7 +273,7 @@ fun MediaDetailDialog(
                                                 fontWeight = FontWeight.Normal,
                                                 fontSize = 27.sp,
                                                 lineHeight = 30.sp,
-                                                color = CinemaTheme.Parchment,
+                                                color = AppTheme.TextPrimary,
                                                 maxLines = 3,
                                                 overflow = TextOverflow.Ellipsis
                                             )
@@ -284,7 +284,7 @@ fun MediaDetailDialog(
                                                     fontFamily = SpecMono,
                                                     fontStyle = FontStyle.Italic,
                                                     fontSize = 12.sp,
-                                                    color = CinemaTheme.ParchmentDim,
+                                                    color = AppTheme.TextSecondary,
                                                     maxLines = 2,
                                                     overflow = TextOverflow.Ellipsis
                                                 )
@@ -310,7 +310,7 @@ fun MediaDetailDialog(
                                         text = stringResource(R.string.detail_not_on_list),
                                         fontFamily = SpecMono,
                                         fontSize = 13.sp,
-                                        color = CinemaTheme.ParchmentDim
+                                        color = AppTheme.TextSecondary
                                     )
                                 } else {
                                     FlowRow(
@@ -340,7 +340,7 @@ fun MediaDetailDialog(
                                         fontFamily = SpecMono,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 15.sp,
-                                        color = CinemaTheme.Parchment
+                                        color = AppTheme.TextPrimary
                                     )
                                 }
                             }
@@ -357,7 +357,7 @@ fun MediaDetailDialog(
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(15.dp),
                                             strokeWidth = 2.dp,
-                                            color = CinemaTheme.Gold
+                                            color = AppTheme.YellowAccent
                                         )
                                     } else {
                                         FlowRow(
@@ -420,7 +420,7 @@ fun MediaDetailDialog(
                                             fontFamily = SpecMono,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 14.sp,
-                                            color = CinemaTheme.Parchment
+                                            color = AppTheme.TextPrimary
                                         )
                                     }
                                     if (cast.isNotEmpty()) {
@@ -434,7 +434,7 @@ fun MediaDetailDialog(
                                                     fontFamily = SpecMono,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 13.sp,
-                                                    color = CinemaTheme.Parchment
+                                                    color = AppTheme.TextPrimary
                                                 )
                                                 if (line.character != null) {
                                                     Text(
@@ -442,7 +442,7 @@ fun MediaDetailDialog(
                                                         fontFamily = SpecMono,
                                                         fontStyle = FontStyle.Italic,
                                                         fontSize = 12.sp,
-                                                        color = CinemaTheme.ParchmentDim
+                                                        color = AppTheme.TextSecondary
                                                     )
                                                 }
                                             }
@@ -530,7 +530,7 @@ private fun InteractivePosterDialog(
                             cameraDistance = 14f * densityF
                         }
                         .clip(RoundedCornerShape(16.dp))
-                        .background(CinemaTheme.Smoke)
+                        .background(AppTheme.DarkSurface2)
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDrag = { change, drag ->
@@ -561,6 +561,7 @@ private fun InteractivePosterDialog(
                     )
 
                     // Glanzlicht + holografischer Schimmer, wandert mit der Neigung
+                    val holoGold = AppTheme.GoldBright
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -587,7 +588,7 @@ private fun InteractivePosterDialog(
                                     Brush.linearGradient(
                                         colors = listOf(
                                             Color.Transparent,
-                                            CinemaTheme.GoldBright.copy(alpha = 0.10f),
+                                            holoGold.copy(alpha = 0.10f),
                                             Color.Transparent
                                         ),
                                         start = Offset(gx - size.width, gy - size.height),
@@ -604,7 +605,7 @@ private fun InteractivePosterDialog(
                     fontFamily = SpecMono,
                     fontSize = 10.sp,
                     letterSpacing = 1.5.sp,
-                    color = CinemaTheme.ParchmentDim
+                    color = AppTheme.TextSecondary
                 )
             }
         }
@@ -658,7 +659,7 @@ private fun SprocketStrip() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CinemaTheme.Ink.copy(alpha = 0.6f))
+            .background(AppTheme.DarkBg.copy(alpha = 0.6f))
             .padding(horizontal = 14.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.spacedBy(9.dp)
     ) {
@@ -668,7 +669,7 @@ private fun SprocketStrip() {
                     .weight(1f)
                     .height(7.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(CinemaTheme.Ember.copy(alpha = 0.55f))
+                    .background(AppTheme.Ember.copy(alpha = 0.55f))
             )
         }
     }
@@ -680,13 +681,14 @@ private fun PosterFrame(posterPath: String?, title: String, onClick: (() -> Unit
         modifier = Modifier
             .size(96.dp, 144.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(CinemaTheme.Smoke)
+            .background(AppTheme.DarkSurface2)
             .then(
                 if (posterPath != null && onClick != null)
                     Modifier.clickable { onClick() } else Modifier
             )
     ) {
         if (posterPath != null) {
+            val vignette = AppTheme.DarkBg.copy(alpha = 0.55f)
             AsyncImage(
                 model = "https://image.tmdb.org/t/p/w500$posterPath",
                 contentDescription = title,
@@ -698,7 +700,7 @@ private fun PosterFrame(posterPath: String?, title: String, onClick: (() -> Unit
                         drawRect(
                             Brush.verticalGradient(
                                 0.55f to Color.Transparent,
-                                1f to CinemaTheme.Ink.copy(alpha = 0.55f)
+                                1f to vignette
                             )
                         )
                     },
@@ -706,7 +708,7 @@ private fun PosterFrame(posterPath: String?, title: String, onClick: (() -> Unit
             )
         } else {
             Box(Modifier.size(96.dp, 144.dp), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.Info, contentDescription = null, tint = CinemaTheme.ParchmentDim)
+                Icon(Icons.Default.Info, contentDescription = null, tint = AppTheme.TextSecondary)
             }
         }
 
@@ -718,13 +720,13 @@ private fun PosterFrame(posterPath: String?, title: String, onClick: (() -> Unit
                     .padding(6.dp)
                     .size(22.dp)
                     .clip(RoundedCornerShape(7.dp))
-                    .background(CinemaTheme.Ink.copy(alpha = 0.6f)),
+                    .background(AppTheme.DarkBg.copy(alpha = 0.6f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.OpenInFull,
                     contentDescription = stringResource(R.string.poster_expand),
-                    tint = CinemaTheme.GoldBright,
+                    tint = AppTheme.GoldBright,
                     modifier = Modifier.size(12.dp)
                 )
             }
@@ -739,7 +741,7 @@ private fun TicketTag(text: String) {
         color = Color.Transparent,
         modifier = Modifier
             .clip(RoundedCornerShape(4.dp))
-            .background(CinemaTheme.Gold.copy(alpha = 0.14f))
+            .background(AppTheme.YellowAccent.copy(alpha = 0.14f))
     ) {
         Text(
             text = text,
@@ -747,7 +749,7 @@ private fun TicketTag(text: String) {
             fontWeight = FontWeight.Bold,
             fontSize = 10.sp,
             letterSpacing = 3.sp,
-            color = CinemaTheme.GoldBright,
+            color = AppTheme.GoldBright,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }
@@ -765,7 +767,7 @@ private fun CloseButton(onDismiss: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = stringResource(R.string.action_close),
-            tint = CinemaTheme.ParchmentDim,
+            tint = AppTheme.TextSecondary,
             modifier = Modifier.size(20.dp)
         )
     }
@@ -781,10 +783,10 @@ private fun EditAction(onClick: () -> Unit) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .border(
-                BorderStroke(1.dp, CinemaTheme.Gold.copy(alpha = 0.55f)),
+                BorderStroke(1.dp, AppTheme.YellowAccent.copy(alpha = 0.55f)),
                 RoundedCornerShape(12.dp)
             )
-            .background(CinemaTheme.Gold.copy(alpha = 0.08f))
+            .background(AppTheme.YellowAccent.copy(alpha = 0.08f))
             .clickable { onClick() }
             .padding(vertical = 13.dp),
         horizontalArrangement = Arrangement.Center,
@@ -793,7 +795,7 @@ private fun EditAction(onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Edit,
             contentDescription = null,
-            tint = CinemaTheme.GoldBright,
+            tint = AppTheme.GoldBright,
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
@@ -803,7 +805,7 @@ private fun EditAction(onClick: () -> Unit) {
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             letterSpacing = 2.5.sp,
-            color = CinemaTheme.GoldBright
+            color = AppTheme.GoldBright
         )
     }
 }
@@ -816,7 +818,7 @@ private fun AddAction(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(CinemaTheme.Gold)
+            .background(AppTheme.YellowAccent)
             .clickable { onClick() }
             .padding(vertical = 14.dp),
         horizontalArrangement = Arrangement.Center,
@@ -825,7 +827,7 @@ private fun AddAction(onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
-            tint = CinemaTheme.Ink,
+            tint = AppTheme.DarkBg,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(10.dp))
@@ -835,7 +837,7 @@ private fun AddAction(onClick: () -> Unit) {
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             letterSpacing = 2.sp,
-            color = CinemaTheme.Ink
+            color = AppTheme.DarkBg
         )
     }
 }
@@ -848,7 +850,7 @@ private fun GoldRule() {
             .height(1.dp)
             .background(
                 Brush.horizontalGradient(
-                    listOf(CinemaTheme.Hairline, CinemaTheme.Gold.copy(alpha = 0.5f), CinemaTheme.Hairline)
+                    listOf(AppTheme.Hairline, AppTheme.YellowAccent.copy(alpha = 0.5f), AppTheme.Hairline)
                 )
             )
     )
@@ -862,7 +864,7 @@ private fun FieldLabel(text: String) {
         fontWeight = FontWeight.Bold,
         fontSize = 10.sp,
         letterSpacing = 2.5.sp,
-        color = CinemaTheme.Gold
+        color = AppTheme.YellowAccent
     )
 }
 
@@ -870,7 +872,7 @@ private fun FieldLabel(text: String) {
 private fun ListChip(text: String) {
     Surface(
         shape = RoundedCornerShape(6.dp),
-        color = CinemaTheme.Gold.copy(alpha = 0.10f),
+        color = AppTheme.YellowAccent.copy(alpha = 0.10f),
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
     ) {
@@ -879,7 +881,7 @@ private fun ListChip(text: String) {
             fontFamily = SpecMono,
             fontWeight = FontWeight.Normal,
             fontSize = 12.sp,
-            color = CinemaTheme.GoldBright,
+            color = AppTheme.GoldBright,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
         )
     }
@@ -898,14 +900,14 @@ private fun SpecRow(label: String, value: String?, loading: Boolean) {
             text = label,
             fontFamily = SpecMono,
             fontSize = 13.sp,
-            color = CinemaTheme.ParchmentDim
+            color = AppTheme.TextSecondary
         )
         // Gepunkteter Leader füllt den Raum – Datenblatt-Optik
         Text(
             text = " " + "·".repeat(40) + " ",
             fontFamily = SpecMono,
             fontSize = 13.sp,
-            color = CinemaTheme.Hairline,
+            color = AppTheme.Hairline,
             maxLines = 1,
             overflow = TextOverflow.Clip,
             modifier = Modifier.weight(1f)
@@ -914,7 +916,7 @@ private fun SpecRow(label: String, value: String?, loading: Boolean) {
             CircularProgressIndicator(
                 modifier = Modifier.size(15.dp),
                 strokeWidth = 2.dp,
-                color = CinemaTheme.Gold
+                color = AppTheme.YellowAccent
             )
         } else {
             Text(
@@ -923,7 +925,7 @@ private fun SpecRow(label: String, value: String?, loading: Boolean) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
                 fontStyle = if (value == null) FontStyle.Italic else FontStyle.Normal,
-                color = if (value == null) CinemaTheme.ParchmentDim else CinemaTheme.GoldBright
+                color = if (value == null) AppTheme.TextSecondary else AppTheme.GoldBright
             )
         }
     }
@@ -942,13 +944,13 @@ private fun SeasonRow(label: String, value: String) {
             text = label,
             fontFamily = SpecMono,
             fontSize = 12.sp,
-            color = CinemaTheme.ParchmentDim
+            color = AppTheme.TextSecondary
         )
         Text(
             text = " " + "·".repeat(40) + " ",
             fontFamily = SpecMono,
             fontSize = 12.sp,
-            color = CinemaTheme.Hairline,
+            color = AppTheme.Hairline,
             maxLines = 1,
             overflow = TextOverflow.Clip,
             modifier = Modifier.weight(1f)
@@ -957,7 +959,7 @@ private fun SeasonRow(label: String, value: String) {
             text = value,
             fontFamily = SpecMono,
             fontSize = 13.sp,
-            color = CinemaTheme.Parchment
+            color = AppTheme.TextPrimary
         )
     }
 }

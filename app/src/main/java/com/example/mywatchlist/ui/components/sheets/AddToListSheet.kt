@@ -155,7 +155,7 @@ fun AddToListSheet(
                         },
                         colors = CheckboxDefaults.colors(
                             checkedColor = AppTheme.YellowAccent,
-                            checkmarkColor = Color.Black,
+                            checkmarkColor = AppTheme.OnAccent,
                             uncheckedColor = AppTheme.TextSecondary
                         )
                     )
@@ -187,7 +187,7 @@ fun AddToListSheet(
                             onCheckedChange = { if (it) selectedCategory = category },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = AppTheme.YellowAccent,
-                                checkmarkColor = Color.Black,
+                                checkmarkColor = AppTheme.OnAccent,
                                 uncheckedColor = AppTheme.TextSecondary
                             )
                         )
@@ -286,7 +286,7 @@ fun AddToListSheet(
                     .padding(horizontal = 20.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black,
+                    contentColor = AppTheme.OnAccent,
                     disabledContainerColor = AppTheme.DarkSurface2,
                     disabledContentColor = AppTheme.TextSecondary
                 ),
@@ -336,7 +336,7 @@ fun AddToListSheet(
                     subheadContentColor = AppTheme.TextSecondary,
                     dayContentColor = AppTheme.TextPrimary,
                     selectedDayContainerColor = AppTheme.YellowAccent,
-                    selectedDayContentColor = Color.Black,
+                    selectedDayContentColor = AppTheme.OnAccent,
                     todayContentColor = AppTheme.YellowAccent,
                     todayDateBorderColor = AppTheme.YellowAccent
                 )

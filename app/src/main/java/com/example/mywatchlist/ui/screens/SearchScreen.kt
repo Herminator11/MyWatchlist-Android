@@ -400,7 +400,7 @@ private fun AddSwipeBackground(state: SwipeToDismissBoxState) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
-            tint = if (active) Color.Black else AppTheme.TextSecondary,
+            tint = if (active) AppTheme.OnAccent else AppTheme.TextSecondary,
             modifier = Modifier.size(22.dp)
         )
         Text(
@@ -409,7 +409,7 @@ private fun AddSwipeBackground(state: SwipeToDismissBoxState) {
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
-            color = if (active) Color.Black else AppTheme.TextSecondary
+            color = if (active) AppTheme.OnAccent else AppTheme.TextSecondary
         )
     }
 }
@@ -488,7 +488,7 @@ private fun SearchResultCard(
                 Icon(
                     imageVector = if (alreadySaved) Icons.Default.Check else Icons.Default.Add,
                     contentDescription = if (alreadySaved) stringResource(R.string.cd_already_saved) else stringResource(R.string.action_add),
-                    tint = if (alreadySaved) AppTheme.TextSecondary else Color.Black,
+                    tint = if (alreadySaved) AppTheme.TextSecondary else AppTheme.OnAccent,
                     modifier = Modifier.size(20.dp)
                 )
             }

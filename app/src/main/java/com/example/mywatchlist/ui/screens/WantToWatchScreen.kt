@@ -155,7 +155,7 @@ fun WantToWatchScreen(
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = 104.dp),
             containerColor = AppTheme.YellowAccent,
-            contentColor = Color.Black
+            contentColor = AppTheme.OnAccent
         ) {
             Text(
                 text = "+",
@@ -520,7 +520,7 @@ private fun SearchAddRow(
                     stringResource(R.string.cd_already_saved)
                 else
                     stringResource(R.string.wtw_search_added),
-                tint = if (alreadySaved) AppTheme.TextSecondary else Color.Black,
+                tint = if (alreadySaved) AppTheme.TextSecondary else AppTheme.OnAccent,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -581,7 +581,7 @@ private fun MoveToWatchingSheet(
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black
+                    contentColor = AppTheme.OnAccent
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
@@ -693,7 +693,7 @@ private fun MoveToWatchedSheet(
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black,
+                    contentColor = AppTheme.OnAccent,
                     disabledContainerColor = AppTheme.DarkSurface2,
                     disabledContentColor = AppTheme.TextSecondary
                 ),
@@ -742,7 +742,7 @@ private fun MoveToWatchedSheet(
                     subheadContentColor = AppTheme.TextSecondary,
                     dayContentColor = AppTheme.TextPrimary,
                     selectedDayContainerColor = AppTheme.YellowAccent,
-                    selectedDayContentColor = Color.Black,
+                    selectedDayContentColor = AppTheme.OnAccent,
                     todayContentColor = AppTheme.YellowAccent,
                     todayDateBorderColor = AppTheme.YellowAccent
                 )

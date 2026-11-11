@@ -174,7 +174,7 @@ fun GlobalEditSheet(
                         },
                         colors = CheckboxDefaults.colors(
                             checkedColor = AppTheme.YellowAccent,
-                            checkmarkColor = Color.Black,
+                            checkmarkColor = AppTheme.OnAccent,
                             uncheckedColor = AppTheme.TextSecondary
                         )
                     )
@@ -205,7 +205,7 @@ fun GlobalEditSheet(
                             onCheckedChange = { if (it) selectedCategory = category },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = AppTheme.YellowAccent,
-                                checkmarkColor = Color.Black,
+                                checkmarkColor = AppTheme.OnAccent,
                                 uncheckedColor = AppTheme.TextSecondary
                             )
                         )
@@ -327,7 +327,7 @@ fun GlobalEditSheet(
                     .padding(horizontal = 20.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black
+                    contentColor = AppTheme.OnAccent
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
@@ -375,7 +375,7 @@ fun GlobalEditSheet(
                     subheadContentColor = AppTheme.TextSecondary,
                     dayContentColor = AppTheme.TextPrimary,
                     selectedDayContainerColor = AppTheme.YellowAccent,
-                    selectedDayContentColor = Color.Black,
+                    selectedDayContentColor = AppTheme.OnAccent,
                     todayContentColor = AppTheme.YellowAccent,
                     todayDateBorderColor = AppTheme.YellowAccent
                 )

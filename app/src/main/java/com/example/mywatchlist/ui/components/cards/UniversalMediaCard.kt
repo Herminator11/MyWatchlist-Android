@@ -191,7 +191,7 @@ fun UniversalMediaCard(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = "Mark as finished",
-                            tint = Color.Black,
+                            tint = AppTheme.OnAccent,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -211,7 +211,7 @@ fun UniversalMediaCard(
                                 Icons.Default.PlayArrow else Icons.Default.Check,
                             contentDescription = if (item.mediaType == "tv")
                                 stringResource(R.string.move_start_watching) else stringResource(R.string.move_mark_watched),
-                            tint = Color.Black,
+                            tint = AppTheme.OnAccent,
                             modifier = Modifier.size(20.dp)
                         )
                     }

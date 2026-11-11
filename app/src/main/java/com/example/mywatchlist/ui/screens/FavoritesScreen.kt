@@ -105,7 +105,7 @@ fun FavoritesScreen(
                         label = { Text(category) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = AppTheme.YellowAccent,
-                            selectedLabelColor = Color.Black,
+                            selectedLabelColor = AppTheme.OnAccent,
                             containerColor = AppTheme.DarkSurface2,
                             labelColor = AppTheme.TextSecondary
                         ),

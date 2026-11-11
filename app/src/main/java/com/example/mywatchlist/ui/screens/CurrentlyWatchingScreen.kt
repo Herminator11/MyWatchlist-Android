@@ -156,7 +156,7 @@ private fun FinishedDatePickerDialog(
                 subheadContentColor = AppTheme.TextSecondary,
                 dayContentColor = AppTheme.TextPrimary,
                 selectedDayContainerColor = AppTheme.YellowAccent,
-                selectedDayContentColor = Color.Black,
+                selectedDayContentColor = AppTheme.OnAccent,
                 todayContentColor = AppTheme.YellowAccent,
                 todayDateBorderColor = AppTheme.YellowAccent
             )

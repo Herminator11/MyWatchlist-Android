@@ -1,6 +1,8 @@
 package com.example.mywatchlist.ui.theme
 
 import androidx.compose.foundation.background
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -9,30 +11,30 @@ import androidx.compose.ui.text.font.FontFamily
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS  ·  "Cinema Noir / Goldakzent" (siehe CLAUDE.md)
 //
-// Zentrale Quelle für die GANZE App. Alle Screens lesen aus diesen
-// Tokens – ändert man sie hier, re-skinnt sich die komplette App.
-// Die Namen bleiben bewusst erhalten (DarkBg, YellowAccent …),
-// damit kein Aufrufer angefasst werden muss; nur die Werte werden
-// vom kalten Grau-Gelb auf warmes Noir-Gold verschoben.
+// Zentrale Fassade für die GANZE App. Die Namen bleiben bewusst
+// erhalten (DarkBg, YellowAccent …), damit kein Aufrufer angefasst
+// werden muss. Die Werte kommen jetzt aus LocalCinemaColors und sind
+// damit zur Laufzeit austauschbar.
 // ─────────────────────────────────────────────────────────────
 object AppTheme {
-    // — Flächen (tiefes, warmes Noir) —
-    val DarkBg        = Color(0xFF0B0B0D) // App-Grund, fast schwarz
-    val DarkSurface   = Color(0xFF161519) // Karten / Sheets
-    val DarkSurface2  = Color(0xFF242228) // erhöhte Fläche / Badges
+    // — Flächen —
+    val DarkBg: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.bg
+    val DarkSurface: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.surface
+    val DarkSurface2: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.surface2
 
-    // — Akzent (warmes Bernsteingold statt Neongelb) —
-    val YellowAccent  = Color(0xFFE9B949)
+    // — Akzent —
+    val YellowAccent: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.accent
+    val GoldBright: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.accentBright
+    val Ember: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.ember
+    val OnAccent: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.onAccent
 
-    // — Text (warmweißes Pergament statt kühlem Weiß) —
-    val TextPrimary   = Color(0xFFF4ECDD)
-    val TextSecondary = Color(0xFFA89F8E)
-    val TextTertiary  = Color(0xFF4A4640)
+    // — Text —
+    val TextPrimary: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.textPrimary
+    val TextSecondary: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.textSecondary
+    val TextTertiary: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.textTertiary
 
-    // — Zusätzliche Akzent-Nuancen für das neue Design —
-    val GoldBright    = Color(0xFFFFD874)
-    val Ember         = Color(0xFF7A4A12)
-    val Hairline      = Color(0x33E9B949)
+    val Hairline: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.hairline
+    val Scrim: Color @Composable @ReadOnlyComposable get() = LocalCinemaColors.current.scrim
 
     // — Schrift-Tokens (gebündelte Fonts, kein System/Inter) —
     val Display: FontFamily = DisplaySerif // Titel, Headlines
