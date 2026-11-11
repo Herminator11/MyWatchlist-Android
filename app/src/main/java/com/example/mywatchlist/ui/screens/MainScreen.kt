@@ -177,9 +177,17 @@ sealed class BottomNavItem(
         inactiveIcon = Icons.Outlined.Search,
         labelRes = R.string.nav_search
     )
+
+    companion object {
+        /** Alle Tabs in der Standard-Reihenfolge. */
+        val all: List<BottomNavItem> by lazy { listOf(WantToWatch, CurrentlyWatching, RecentlyWatched, Favorites, Search) }
+
+        fun fromRoute(route: String): BottomNavItem? = all.firstOrNull { it.route == route }
+    }
 }
 
 const val ROUTE_SETTINGS = "settings"
+const val ROUTE_SETTINGS_NAVIGATION = "settings/navigation"
 
 @Composable
 fun MainScreenApp() {
@@ -206,11 +214,23 @@ fun MainScreenApp() {
                 onBack = { rootNavController.popBackStack() },
                 autoHideNavBar = autoHideNavBar,
                 onAutoHideNavBarChanged = { settingsViewModel.setAutoHideNavBar(it) },
+                onOpenNavigation = { rootNavController.navigate(ROUTE_SETTINGS_NAVIGATION) },
                 exportCounts = exportCounts,
                 onBuildExportText = { selection ->
                     libraryViewModel.buildExportText(context, selection)
                 }
             )
+        }
+        composable(ROUTE_SETTINGS_NAVIGATION) {
+            val navConfig by settingsViewModel.navConfig.collectAsStateWithLifecycle()
+            navConfig?.let { config ->
+                NavigationSettingsScreen(
+                    config = config,
+                    onBack = { rootNavController.popBackStack() },
+                    onChange = { transform -> settingsViewModel.updateNavConfig(transform) },
+                    onReset = { settingsViewModel.resetNavConfig() }
+                )
+            }
         }
     }
 }
@@ -222,6 +242,7 @@ private fun MainContent(onOpenSettings: () -> Unit) {
     val settingsViewModel: SettingsViewModel = viewModel()
 
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
+    val navConfig by settingsViewModel.navConfig.collectAsStateWithLifecycle()
 
     // App-weite Undo-Snackbar fürs Löschen aus Listen
     val snackbarHostState = remember { SnackbarHostState() }
@@ -265,6 +286,13 @@ private fun MainContent(onOpenSettings: () -> Unit) {
         }
     }
 
+    // Bis die gespeicherte Tab-Konfiguration geladen ist (wenige ms), nur den
+    // Hintergrund zeigen – so startet die App direkt im gewählten Start-Tab.
+    val config = navConfig ?: run {
+        Box(Modifier.fillMaxSize().background(AppTheme.DarkBg))
+        return
+    }
+
     Scaffold(
         containerColor = AppTheme.DarkBg,
         topBar = {
@@ -278,7 +306,7 @@ private fun MainContent(onOpenSettings: () -> Unit) {
         ) {
             NavHost(
                 navController = navController,
-                startDestination = BottomNavItem.CurrentlyWatching.route,
+                startDestination = config.start,
                 modifier = Modifier
                     .fillMaxSize()
                     .haze(state = hazeState)
@@ -297,7 +325,11 @@ private fun MainContent(onOpenSettings: () -> Unit) {
                     .align(Alignment.BottomCenter)
                     .offset { IntOffset(x = 0, y = bottomBarOffsetHeightPx.floatValue.roundToInt()) }
             ) {
-                FloatingBottomNavigation(navController = navController, hazeState = hazeState)
+                FloatingBottomNavigation(
+                    navController = navController,
+                    hazeState = hazeState,
+                    items = config.visible.mapNotNull(BottomNavItem::fromRoute)
+                )
             }
 
             // Undo-Snackbar über der Floating-Navigation
@@ -321,14 +353,11 @@ private fun MainContent(onOpenSettings: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState) {
-    val items = listOf(
-        BottomNavItem.WantToWatch,
-        BottomNavItem.CurrentlyWatching,
-        BottomNavItem.RecentlyWatched,
-        BottomNavItem.Favorites,
-        BottomNavItem.Search
-    )
+fun FloatingBottomNavigation(
+    navController: NavController,
+    hazeState: HazeState,
+    items: List<BottomNavItem> = BottomNavItem.all,
+) {
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     val reduceMotion = LocalReduceMotion.current

@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.viewmodel
+import com.example.mywatchlist.data.NavConfig
 import com.example.mywatchlist.data.*
 
 import android.app.Application
@@ -22,6 +23,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             started = SharingStarted.Eagerly,
             initialValue = true
         )
+
+    // null bis DataStore gelesen ist → die Navigation wird erst dann aufgebaut,
+    // damit der Start-Tab nicht kurz auf den Default springt.
+    val navConfig: StateFlow<NavConfig?> = repository.navConfig
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun updateNavConfig(transform: (NavConfig) -> NavConfig) {
+        val current = navConfig.value ?: return
+        val next = transform(current)
+        if (next != current) viewModelScope.launch { repository.setNavConfig(next) }
+    }
+
+    fun resetNavConfig() {
+        viewModelScope.launch { repository.resetNavConfig() }
+    }
 
     fun setAutoHideNavBar(enabled: Boolean) {
         viewModelScope.launch {

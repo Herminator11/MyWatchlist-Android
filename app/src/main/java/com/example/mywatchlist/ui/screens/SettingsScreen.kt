@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.LibraryAddCheck
 import androidx.compose.material.icons.filled.ViewDay
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,6 +42,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     autoHideNavBar: Boolean,
     onAutoHideNavBarChanged: (Boolean) -> Unit,
+    onOpenNavigation: () -> Unit = {},
     exportCounts: Map<ExportList, Int>,
     onBuildExportText: (Set<ExportList>) -> String?
 ) {
@@ -142,6 +144,14 @@ fun SettingsScreen(
                         )
                     }
                 )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsRow(
+                    icon = Icons.Filled.SwapVert,
+                    title = stringResource(R.string.settings_nav_customize),
+                    subtitle = stringResource(R.string.settings_nav_customize_desc),
+                    onClick = onOpenNavigation,
+                    trailing = { SettingsChevron() }
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -219,7 +229,7 @@ fun SettingsScreen(
 // ── Hilfs-Composables ────────────────────────────────────────
 
 @Composable
-private fun SettingsSectionHeader(title: String) {
+internal fun SettingsSectionHeader(title: String) {
     Text(
         text = title.uppercase(),
         fontSize = 11.sp,
@@ -231,7 +241,7 @@ private fun SettingsSectionHeader(title: String) {
 }
 
 @Composable
-private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+internal fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = AppTheme.DarkSurface,
@@ -242,7 +252,7 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-private fun SettingsRow(
+internal fun SettingsRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String? = null,
@@ -286,4 +296,14 @@ private fun SettingsRow(
         }
         trailing()
     }
+}
+
+@Composable
+internal fun SettingsChevron(enabled: Boolean = true) {
+    Icon(
+        imageVector = Icons.Filled.ChevronRight,
+        contentDescription = null,
+        tint = if (enabled) AppTheme.TextTertiary else AppTheme.TextTertiary.copy(alpha = 0.4f),
+        modifier = Modifier.size(20.dp)
+    )
 }
