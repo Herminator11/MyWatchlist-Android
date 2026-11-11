@@ -1,4 +1,7 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.AppearancePrefs
+import com.example.mywatchlist.ui.theme.LocalHapticsEnabled
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
@@ -195,6 +198,7 @@ fun MainScreenApp() {
     val settingsViewModel: SettingsViewModel = viewModel()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
+    val appearance by settingsViewModel.appearance.collectAsStateWithLifecycle()
 
     val context = androidx.compose.ui.platform.LocalContext.current
 
@@ -215,6 +219,8 @@ fun MainScreenApp() {
                 autoHideNavBar = autoHideNavBar,
                 onAutoHideNavBarChanged = { settingsViewModel.setAutoHideNavBar(it) },
                 onOpenNavigation = { rootNavController.navigate(ROUTE_SETTINGS_NAVIGATION) },
+                appearance = appearance ?: AppearancePrefs(),
+                onAppearanceChange = { settingsViewModel.updateAppearance(it) },
                 exportCounts = exportCounts,
                 onBuildExportText = { selection ->
                     libraryViewModel.buildExportText(context, selection)
@@ -243,6 +249,7 @@ private fun MainContent(onOpenSettings: () -> Unit) {
 
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
     val navConfig by settingsViewModel.navConfig.collectAsStateWithLifecycle()
+    val appearance by settingsViewModel.appearance.collectAsStateWithLifecycle()
 
     // App-weite Undo-Snackbar fürs Löschen aus Listen
     val snackbarHostState = remember { SnackbarHostState() }
@@ -328,7 +335,8 @@ private fun MainContent(onOpenSettings: () -> Unit) {
                 FloatingBottomNavigation(
                     navController = navController,
                     hazeState = hazeState,
-                    items = config.visible.mapNotNull(BottomNavItem::fromRoute)
+                    items = config.visible.mapNotNull(BottomNavItem::fromRoute),
+                    showLabels = appearance?.navLabels == true
                 )
             }
 
@@ -357,10 +365,12 @@ fun FloatingBottomNavigation(
     navController: NavController,
     hazeState: HazeState,
     items: List<BottomNavItem> = BottomNavItem.all,
+    showLabels: Boolean = false,
 ) {
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     val reduceMotion = LocalReduceMotion.current
+    val hapticsEnabled = LocalHapticsEnabled.current
 
     Box(
         modifier = Modifier
@@ -372,7 +382,7 @@ fun FloatingBottomNavigation(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(if (showLabels) 72.dp else 64.dp)
                 .hazeChild(
                     state = hazeState,
                     shape = RoundedCornerShape(32.dp),
@@ -423,7 +433,7 @@ fun FloatingBottomNavigation(
                     )
 
                     LaunchedEffect(tooltipState.isVisible) {
-                        if (tooltipState.isVisible) {
+                        if (tooltipState.isVisible && hapticsEnabled) {
                             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
@@ -450,7 +460,7 @@ fun FloatingBottomNavigation(
                                     role = Role.Tab
                                 ) {
                                     if (currentRoute != item.route) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         navController.navigate(item.route) {
                                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                                             launchSingleTop = true
@@ -458,7 +468,10 @@ fun FloatingBottomNavigation(
                                         }
                                     }
                                 }
-                                .padding(horizontal = 14.dp, vertical = 12.dp), // 24 + 2×12 = 48 dp
+                                .padding(
+                                    horizontal = if (showLabels) 6.dp else 14.dp,
+                                    vertical = if (showLabels) 5.dp else 12.dp // 24 + 2×12 = 48 dp
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             TooltipBox(
@@ -468,14 +481,28 @@ fun FloatingBottomNavigation(
                                 tooltip = { PlainTooltip { Text(stringResource(item.labelRes)) } },
                                 state = tooltipState
                             ) {
-                                Icon(
-                                    imageVector = if (isSelected) item.activeIcon else item.inactiveIcon,
-                                    contentDescription = stringResource(item.labelRes),
-                                    tint = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .scale(iconScale)
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        imageVector = if (isSelected) item.activeIcon else item.inactiveIcon,
+                                        contentDescription = stringResource(item.labelRes),
+                                        tint = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .scale(iconScale)
+                                    )
+                                    // Optionale Beschriftung (Einstellung „Nav-Labels“)
+                                    if (showLabels) {
+                                        Text(
+                                            text = stringResource(item.labelRes),
+                                            fontFamily = AppTheme.Body,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 11.sp,
+                                            maxLines = 1,
+                                            color = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
+                                            modifier = Modifier.clearAndSetSemantics { } // Icon trägt schon das Label
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

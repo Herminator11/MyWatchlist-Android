@@ -57,6 +57,7 @@ import com.example.mywatchlist.data.NavRoutes
 import com.example.mywatchlist.ui.theme.AppTheme
 import com.example.mywatchlist.ui.theme.CinemaMotion
 import com.example.mywatchlist.ui.theme.LocalReduceMotion
+import com.example.mywatchlist.ui.theme.LocalHapticsEnabled
 import sh.calvin.reorderable.ReorderableColumn
 
 // ─────────────────────────────────────────────
@@ -73,6 +74,7 @@ fun NavigationSettingsScreen(
     onReset: () -> Unit,
 ) {
     val view = LocalView.current
+    val haptics = LocalHapticsEnabled.current
     val items = config.order.mapNotNull(BottomNavItem::fromRoute)
 
     Scaffold(
@@ -122,7 +124,7 @@ fun NavigationSettingsScreen(
             ReorderableColumn(
                 list = items,
                 onSettle = { from, to -> onChange { it.move(from, to) } },
-                onMove = { view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) },
+                onMove = { if (haptics) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) },
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) { index, item, isDragging ->
                 key(item.route) {
@@ -166,7 +168,7 @@ fun NavigationSettingsScreen(
                                 IconButton(
                                     onClick = {},
                                     modifier = Modifier.draggableHandle(
-                                        onDragStarted = { view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
+                                        onDragStarted = { if (haptics) view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
                                     )
                                 ) {
                                     Icon(

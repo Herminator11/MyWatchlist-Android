@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.viewmodel
+import com.example.mywatchlist.data.AppearancePrefs
 import com.example.mywatchlist.data.NavConfig
 import com.example.mywatchlist.data.*
 
@@ -33,6 +34,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val current = navConfig.value ?: return
         val next = transform(current)
         if (next != current) viewModelScope.launch { repository.setNavConfig(next) }
+    }
+
+    // Darstellung: null bis geladen → kein kurzes Aufblitzen der Standardfarbe
+    val appearance: StateFlow<AppearancePrefs?> = repository.appearance
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun updateAppearance(transform: (AppearancePrefs) -> AppearancePrefs) {
+        val current = appearance.value ?: return
+        val next = transform(current)
+        if (next != current) viewModelScope.launch { repository.setAppearance(next) }
     }
 
     fun resetNavConfig() {

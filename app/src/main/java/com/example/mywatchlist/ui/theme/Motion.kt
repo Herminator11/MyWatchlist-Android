@@ -17,6 +17,9 @@ import androidx.compose.runtime.compositionLocalOf
 // ─────────────────────────────────────────────────────────────
 val LocalReduceMotion = compositionLocalOf { false }
 
+/** Haptisches Feedback app-weit an/aus (Einstellung). */
+val LocalHapticsEnabled = compositionLocalOf { true }
+
 object CinemaMotion {
     fun <T> spatial(reduce: Boolean = false): FiniteAnimationSpec<T> =
         if (reduce) snap() else spring(dampingRatio = 0.82f, stiffness = Spring.StiffnessMediumLow)

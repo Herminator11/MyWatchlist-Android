@@ -53,11 +53,13 @@ val CinemaShapes = Shapes(
 @Composable
 fun MyWatchlistTheme(
     colors: CinemaColors = NoirGold,
+    forceReduceMotion: Boolean = false,
+    hapticsEnabled: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     // System „Animationen entfernen“ (Entwickler-/Bedienungshilfen) respektieren.
-    val reduceMotion = remember(context) {
+    val systemReduceMotion = remember(context) {
         runCatching {
             Settings.Global.getFloat(
                 context.contentResolver,
@@ -69,7 +71,8 @@ fun MyWatchlistTheme(
 
     CompositionLocalProvider(
         LocalCinemaColors provides colors,
-        LocalReduceMotion provides reduceMotion,
+        LocalReduceMotion provides (systemReduceMotion || forceReduceMotion),
+        LocalHapticsEnabled provides hapticsEnabled,
     ) {
         MaterialTheme(
             colorScheme = colors.toColorScheme(),

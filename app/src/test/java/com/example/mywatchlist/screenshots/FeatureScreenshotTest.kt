@@ -14,6 +14,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mywatchlist.data.NavConfig
+import com.example.mywatchlist.data.AccentOption
+import com.example.mywatchlist.data.AppearancePrefs
+import com.example.mywatchlist.ui.screens.SettingsScreen
+import com.example.mywatchlist.ui.theme.cinemaPalette
+import com.example.mywatchlist.ui.viewmodel.ExportList
 import com.example.mywatchlist.ui.screens.BottomNavItem
 import com.example.mywatchlist.ui.screens.FloatingBottomNavigation
 import com.example.mywatchlist.ui.screens.NavigationSettingsScreen
@@ -92,5 +97,39 @@ class FeatureScreenshotTest {
             }
         }
         shoot("feature_nav_custom_bar")
+    }
+
+    @Test
+    fun settingsTealAccent() {
+        val prefs = AppearancePrefs(accent = AccentOption.TEAL)
+        composeRule.setContent {
+            MyWatchlistTheme(colors = cinemaPalette(prefs.accent, prefs.amoled)) {
+                SettingsScreen(
+                    onBack = {}, autoHideNavBar = true, onAutoHideNavBarChanged = {},
+                    appearance = prefs,
+                    exportCounts = ExportList.values().associateWith { 4 },
+                    onBuildExportText = { null }
+                )
+            }
+        }
+        shoot("feature_settings_teal")
+    }
+
+    @Test
+    fun crimsonAmoledWithLabels() {
+        composeRule.setContent {
+            MyWatchlistTheme(colors = cinemaPalette(AccentOption.CRIMSON, amoled = true)) {
+                val nav = rememberNavController()
+                Box(Modifier.fillMaxSize().cinemaBackground()) {
+                    NavHost(nav, startDestination = "currently_watching") {
+                        NavConfig.Default.order.forEach { r -> composable(r) { Box(Modifier.fillMaxSize()) } }
+                    }
+                    Box(Modifier.align(Alignment.BottomCenter)) {
+                        FloatingBottomNavigation(navController = nav, hazeState = remember { HazeState() }, showLabels = true)
+                    }
+                }
+            }
+        }
+        shoot("feature_nav_labels_crimson_amoled")
     }
 }

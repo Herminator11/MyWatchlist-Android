@@ -1,4 +1,19 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.data.AppearancePrefs
+import com.example.mywatchlist.data.AccentOption
+import com.example.mywatchlist.ui.theme.swatch
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.filled.Animation
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
@@ -43,6 +58,8 @@ fun SettingsScreen(
     autoHideNavBar: Boolean,
     onAutoHideNavBarChanged: (Boolean) -> Unit,
     onOpenNavigation: () -> Unit = {},
+    appearance: AppearancePrefs = AppearancePrefs(),
+    onAppearanceChange: ((AppearancePrefs) -> AppearancePrefs) -> Unit = {},
     exportCounts: Map<ExportList, Int>,
     onBuildExportText: (Set<ExportList>) -> String?
 ) {
@@ -151,6 +168,54 @@ fun SettingsScreen(
                     subtitle = stringResource(R.string.settings_nav_customize_desc),
                     onClick = onOpenNavigation,
                     trailing = { SettingsChevron() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ── Look: Akzent, AMOLED, Labels, Haptik, Animationen ──
+            SettingsCard {
+                SettingsRow(
+                    icon = Icons.Filled.Palette,
+                    title = stringResource(R.string.settings_accent),
+                    subtitle = stringResource(appearance.accent.labelRes()),
+                    trailing = {}
+                )
+                AccentPicker(
+                    selected = appearance.accent,
+                    onSelect = { accent -> onAppearanceChange { it.copy(accent = accent) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsSwitchRow(
+                    icon = Icons.Filled.DarkMode,
+                    title = stringResource(R.string.settings_amoled),
+                    subtitle = stringResource(R.string.settings_amoled_desc),
+                    checked = appearance.amoled,
+                    onChange = { v -> onAppearanceChange { it.copy(amoled = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsSwitchRow(
+                    icon = Icons.Filled.Label,
+                    title = stringResource(R.string.settings_nav_labels),
+                    subtitle = stringResource(R.string.settings_nav_labels_desc),
+                    checked = appearance.navLabels,
+                    onChange = { v -> onAppearanceChange { it.copy(navLabels = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsSwitchRow(
+                    icon = Icons.Filled.Vibration,
+                    title = stringResource(R.string.settings_haptics),
+                    subtitle = stringResource(R.string.settings_haptics_desc),
+                    checked = appearance.haptics,
+                    onChange = { v -> onAppearanceChange { it.copy(haptics = v) } }
+                )
+                HorizontalDivider(color = AppTheme.DarkSurface2, thickness = 1.dp)
+                SettingsSwitchRow(
+                    icon = Icons.Filled.Animation,
+                    title = stringResource(R.string.settings_reduce_motion),
+                    subtitle = stringResource(R.string.settings_reduce_motion_desc),
+                    checked = appearance.reduceMotion,
+                    onChange = { v -> onAppearanceChange { it.copy(reduceMotion = v) } }
                 )
             }
 
@@ -306,4 +371,76 @@ internal fun SettingsChevron(enabled: Boolean = true) {
         tint = if (enabled) AppTheme.TextTertiary else AppTheme.TextTertiary.copy(alpha = 0.4f),
         modifier = Modifier.size(20.dp)
     )
+}
+
+@Composable
+internal fun SettingsSwitchRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String?,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    SettingsRow(
+        icon = icon,
+        title = title,
+        subtitle = subtitle,
+        onClick = { onChange(!checked) },
+        trailing = {
+            Switch(
+                checked = checked,
+                onCheckedChange = null, // Zeile ist der Klickbereich → ein Fokusziel für TalkBack
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = AppTheme.OnAccent,
+                    checkedTrackColor = AppTheme.YellowAccent,
+                    uncheckedThumbColor = AppTheme.TextSecondary,
+                    uncheckedTrackColor = AppTheme.DarkSurface2
+                )
+            )
+        }
+    )
+}
+
+private fun AccentOption.labelRes(): Int = when (this) {
+    AccentOption.GOLD -> R.string.accent_gold
+    AccentOption.CRIMSON -> R.string.accent_crimson
+    AccentOption.COPPER -> R.string.accent_copper
+    AccentOption.TEAL -> R.string.accent_teal
+    AccentOption.ICE -> R.string.accent_ice
+}
+
+/** Fünf Farbmedaillons; Auswahl mit Ring. 48-dp-Ziele, Radio-Semantik. */
+@Composable
+private fun AccentPicker(selected: AccentOption, onSelect: (AccentOption) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 52.dp, end = 12.dp, bottom = 12.dp)
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        AccentOption.entries.forEach { option ->
+            val isSelected = option == selected
+            val name = stringResource(option.labelRes())
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(option) }
+                    .semantics { contentDescription = name },
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(if (isSelected) 36.dp else 30.dp)
+                        .border(
+                            width = 2.dp,
+                            color = if (isSelected) AppTheme.TextPrimary else androidx.compose.ui.graphics.Color.Transparent,
+                            shape = CircleShape
+                        )
+                        .padding(4.dp)
+                        .background(option.swatch(), CircleShape)
+                )
+            }
+        }
+    }
 }

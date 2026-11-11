@@ -23,6 +23,32 @@ class SettingsRepository(private val context: Context) {
         private val KEY_NAV_ORDER = stringPreferencesKey("nav_order")
         private val KEY_NAV_HIDDEN = stringPreferencesKey("nav_hidden")
         private val KEY_NAV_START = stringPreferencesKey("nav_start")
+        private val KEY_ACCENT = stringPreferencesKey("accent")
+        private val KEY_AMOLED = booleanPreferencesKey("amoled")
+        private val KEY_NAV_LABELS = booleanPreferencesKey("nav_labels")
+        private val KEY_HAPTICS = booleanPreferencesKey("haptics")
+        private val KEY_REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
+    }
+
+    val appearance: Flow<AppearancePrefs> = context.dataStore.data.map { p ->
+        val d = AppearancePrefs()
+        AppearancePrefs(
+            accent = AccentOption.fromName(p[KEY_ACCENT]),
+            amoled = p[KEY_AMOLED] ?: d.amoled,
+            navLabels = p[KEY_NAV_LABELS] ?: d.navLabels,
+            haptics = p[KEY_HAPTICS] ?: d.haptics,
+            reduceMotion = p[KEY_REDUCE_MOTION] ?: d.reduceMotion,
+        )
+    }
+
+    suspend fun setAppearance(prefs: AppearancePrefs) {
+        context.dataStore.edit { p ->
+            p[KEY_ACCENT] = prefs.accent.name
+            p[KEY_AMOLED] = prefs.amoled
+            p[KEY_NAV_LABELS] = prefs.navLabels
+            p[KEY_HAPTICS] = prefs.haptics
+            p[KEY_REDUCE_MOTION] = prefs.reduceMotion
+        }
     }
 
     // Tab-Reihenfolge, ausgeblendete Tabs und Start-Tab – beim Lesen normalisiert

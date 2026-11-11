@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.theme
+import androidx.compose.ui.composed
 
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
@@ -45,10 +46,14 @@ object AppTheme {
 
 // Atmosphärischer App-Hintergrund: warmer Charcoal oben, der nach
 // fast-schwarz unten ausläuft – Tiefe statt Solid-Fläche.
-fun Modifier.cinemaBackground(): Modifier = this.background(
-    Brush.verticalGradient(
-        0.0f to Color(0xFF17141A),
-        0.45f to Color(0xFF0D0C0F),
-        1.0f to Color(0xFF070708)
+// Liest die aktive Palette → folgt AMOLED-Schwarz und künftigen Paletten.
+fun Modifier.cinemaBackground(): Modifier = composed {
+    val c = LocalCinemaColors.current
+    background(
+        Brush.verticalGradient(
+            0.0f to c.backdropTop,
+            0.45f to c.backdropMid,
+            1.0f to c.backdropBottom
+        )
     )
-)
+}
