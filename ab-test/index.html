@@ -145,6 +145,12 @@ td.a { color: #c9d6e8; } td.b { color: var(--text); }
 .placeholder { aspect-ratio: 9 / 16; max-height: 420px; border-radius: 18px; border: 1px dashed var(--surface2); display: grid; place-items: center;
   text-align: center; color: var(--text3); padding: 20px; background: repeating-linear-gradient(-45deg, rgba(255,255,255,.015) 0 10px, transparent 10px 20px); }
 .note { color: var(--text2); font-size: 13.5px; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 26px; }
+.feature-grid figure { margin: 0; }
+.feature-grid .phone { border-radius: 30px; padding: 8px; }
+.feature-grid .screen { border-radius: 23px; }
+.feature-grid figcaption { margin-top: 12px; color: var(--text2); font-size: 13.5px; }
+.feature-grid figcaption b { display: block; color: var(--text); font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: .02em; }
 footer { margin-top: 70px; color: var(--text3); font: 11px var(--mono); letter-spacing: .08em; }
 
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -247,6 +253,25 @@ footer { margin-top: 70px; color: var(--text3); font: 11px var(--mono); letter-s
         </tbody>
       </table>
     </div>
+  </section>
+
+  <section class="block" aria-labelledby="feat">
+    <div class="head"><h3 id="feat">Neue Features</h3><span class="label">nur in B · gerendert mit Beispieldaten</span></div>
+    <div class="feature-grid">
+      <figure><div class="phone"><div class="screen"><img src="screenshots/features/feature_nav_settings.png" alt="Tabs anpassen: Reihenfolge, Sichtbarkeit, Start-Screen" loading="lazy"></div></div>
+        <figcaption><b>Tabs anpassen</b>Reihenfolge per Drag &amp; Drop, Tabs ausblenden, Start-Screen wählen <span class="commit">54b86a8</span></figcaption></figure>
+      <figure><div class="phone"><div class="screen"><img src="screenshots/features/feature_settings_teal.png" alt="Einstellungen mit Akzentfarbe Petrol" loading="lazy"></div></div>
+        <figcaption><b>Optik</b>5 Akzentfarben, reines Schwarz, Tab-Labels, Haptik, Animationen reduzieren <span class="commit">896a02d</span></figcaption></figure>
+      <figure><div class="phone"><div class="screen"><img src="screenshots/features/feature_nav_labels_crimson_amoled.png" alt="Navigation mit Labels, Kino-Rot und reinem Schwarz" loading="lazy"></div></div>
+        <figcaption><b>Labels + Kino-Rot + AMOLED</b>Beschriftete Navigation auf reinem Schwarz <span class="commit">896a02d</span></figcaption></figure>
+      <figure><div class="phone"><div class="screen"><img src="screenshots/features/feature_lists_poster_grid.png" alt="Am Schauen als Poster-Raster, nach Titel sortiert" loading="lazy"></div></div>
+        <figcaption><b>Poster-Raster</b>Kartenstil „Poster“, sortiert nach Titel <span class="commit">03d6bd2</span></figcaption></figure>
+      <figure><div class="phone"><div class="screen"><img src="screenshots/features/feature_lists_compact.png" alt="Watchlist kompakt, neueste zuerst, startet auf Filme" loading="lazy"></div></div>
+        <figcaption><b>Kompakt</b>Neueste zuerst, ohne Typ-Tag, öffnet auf „Movies“ <span class="commit">03d6bd2</span></figcaption></figure>
+      <figure><div class="phone"><div class="screen"><img src="screenshots/features/feature_nav_custom_bar.png" alt="Umsortierte Navigation mit Favoriten als Start" loading="lazy"></div></div>
+        <figcaption><b>Eigene Navigation</b>Suche vorne, Verlauf ausgeblendet, Favoriten als Start <span class="commit">54b86a8</span></figcaption></figure>
+    </div>
+    <p class="note">Nicht als Bild: JSON-Backup/Restore (<span class="commit">f291e5f</span>, ergänzt nur fehlende Einträge), TMDB-Sprache (<span class="commit">205a9c3</span>) und das Homescreen-Widget (<span class="commit">c3d39ba</span>) – diese sind per Unit-Tests geprüft und zeigen sich erst auf dem Handy.</p>
   </section>
 
   <section class="block" aria-labelledby="mot">
