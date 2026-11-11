@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.roborazzi)
 }
 
 // TMDB-API-Key aus local.properties lesen (nicht im Repo).
@@ -67,6 +68,14 @@ android {
         compose = true
         buildConfig = true
     }
+    // Robolectric/Roborazzi: Screenshots auf der JVM – kein Gerät, keine echte Datenbank.
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        // Zielordner der A/B-Screenshots: ./gradlew recordRoborazziV2 -Pab.out=/abs/pfad
+        unitTests.all { test ->
+            (project.findProperty("ab.out") as String?)?.let { test.systemProperty("ab.out", it) }
+        }
+    }
 }
 
 dependencies {
@@ -108,6 +117,14 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
     testImplementation("org.mockito:mockito-core:5.4.0")
+
+    // Screenshot-Tests (JVM, für den A/B-Vergleich unter ab-test/)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    "v2Implementation"(libs.androidx.compose.ui.test.manifest)
 
     // Instrumented Tests (Android)
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
