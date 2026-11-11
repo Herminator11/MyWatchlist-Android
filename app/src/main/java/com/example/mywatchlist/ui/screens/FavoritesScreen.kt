@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.common.EmptyState
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -159,9 +161,10 @@ fun FavoritesScreen(
             }
 
             if (displayList.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.empty_favorites_category), color = AppTheme.TextSecondary)
-                }
+                EmptyState(
+                    icon = Icons.Outlined.FavoriteBorder,
+                    message = stringResource(R.string.empty_favorites_category)
+                )
             } else {
                 LazyColumn(
                     state = lazyListState,

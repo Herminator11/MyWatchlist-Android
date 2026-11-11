@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.common.EmptyState
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
@@ -120,12 +122,11 @@ fun WantToWatchScreen(
             val entries = if (isTvPage) tvEntries else movieEntries
 
             if (entries.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.empty_watchlist),
-                        color = AppTheme.TextSecondary
-                    )
-                }
+                EmptyState(
+                    icon = Icons.Outlined.BookmarkBorder,
+                    message = stringResource(R.string.empty_watchlist),
+                    hint = stringResource(R.string.empty_hint_search)
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier

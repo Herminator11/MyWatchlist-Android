@@ -1,4 +1,7 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.common.EmptyState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LiveTv
 import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
@@ -48,13 +51,11 @@ fun CurrentlyWatchingScreen(
             .blur(blurRadius)
     ) {
         if (currentlyWatchingList.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.empty_watching),
-                    color = AppTheme.TextSecondary,
-                    textAlign = TextAlign.Center
-                )
-            }
+            EmptyState(
+                icon = Icons.Outlined.LiveTv,
+                message = stringResource(R.string.empty_watching),
+                hint = stringResource(R.string.empty_hint_search)
+            )
         } else {
             LazyColumn(
                 modifier = Modifier

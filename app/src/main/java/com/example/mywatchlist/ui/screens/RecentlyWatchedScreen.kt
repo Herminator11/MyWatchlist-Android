@@ -1,4 +1,7 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.common.EmptyState
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -147,13 +150,11 @@ fun RecentlyWatchedScreen(
             }
 
             if (grouped.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = if (filterQuery.isBlank()) stringResource(R.string.empty_history)
-                        else stringResource(R.string.recently_no_match),
-                        color = AppTheme.TextSecondary
-                    )
-                }
+                EmptyState(
+                    icon = if (filterQuery.isBlank()) Icons.Outlined.History else Icons.Outlined.SearchOff,
+                    message = if (filterQuery.isBlank()) stringResource(R.string.empty_history)
+                    else stringResource(R.string.recently_no_match)
+                )
             } else {
                 LazyColumn(
                     state = if (page == 0) tvListState else movieListState,
