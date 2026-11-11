@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.components.common
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,24 +41,26 @@ import com.example.mywatchlist.ui.theme.AppTheme
 // ─────────────────────────────────────────────
 @Composable
 fun ScreenHeader(title: String) {
-    var shown by remember { mutableStateOf(false) }
+    val reduceMotion = LocalReduceMotion.current
+    // Bei reduzierter Animation sofort sichtbar, sonst orchestrierter Auftritt
+    var shown by remember { mutableStateOf(reduceMotion) }
     LaunchedEffect(Unit) { shown = true }
 
     val alpha by animateFloatAsState(
         targetValue = if (shown) 1f else 0f,
-        animationSpec = tween(420, easing = EaseOutCubic),
+        animationSpec = CinemaMotion.effects(reduceMotion),
         label = "header_alpha"
     )
     val lift = with(LocalDensity.current) { 14.dp.toPx() }
     val translation by animateFloatAsState(
         targetValue = if (shown) 0f else lift,
-        animationSpec = tween(480, easing = EaseOutCubic),
+        animationSpec = CinemaMotion.spatial(reduceMotion),
         label = "header_y"
     )
     // Akzentbalken "wächst" beim Eintreten in die Höhe
     val barScale by animateFloatAsState(
         targetValue = if (shown) 1f else 0f,
-        animationSpec = tween(560, easing = EaseOutCubic),
+        animationSpec = CinemaMotion.spatial(reduceMotion),
         label = "header_bar"
     )
 

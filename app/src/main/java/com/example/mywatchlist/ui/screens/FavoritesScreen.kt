@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import com.example.mywatchlist.ui.components.common.EmptyState
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.ui.res.stringResource
@@ -47,6 +49,7 @@ fun FavoritesScreen(
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 

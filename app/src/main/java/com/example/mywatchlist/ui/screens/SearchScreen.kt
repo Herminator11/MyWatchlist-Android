@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -68,6 +70,7 @@ fun SearchScreen(
 
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 

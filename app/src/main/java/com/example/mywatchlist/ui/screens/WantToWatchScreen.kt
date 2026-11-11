@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import com.example.mywatchlist.ui.components.common.EmptyState
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
@@ -69,6 +71,7 @@ fun WantToWatchScreen(
     var showSearch by remember { mutableStateOf(false) }
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 
@@ -140,6 +143,7 @@ fun WantToWatchScreen(
                     items(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
                         UniversalMediaCard(
                             item = entity,
+                            modifier = Modifier.animateItem(),
                             onMoveClick = { selectedMovieForMove = entity },
                             onClick = { movieForDetail = entity },
                             onLongClick = { selectedMovieForEdit = entity }

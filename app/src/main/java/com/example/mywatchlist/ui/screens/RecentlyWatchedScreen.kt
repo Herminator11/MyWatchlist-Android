@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import com.example.mywatchlist.ui.components.common.EmptyState
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.SearchOff
@@ -56,6 +58,7 @@ fun RecentlyWatchedScreen(
     var filterQuery by remember { mutableStateOf("") }
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 
@@ -173,6 +176,7 @@ fun RecentlyWatchedScreen(
                         items(yearEntries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
                             UniversalMediaCard(
                                 item = movieEntity,
+                                modifier = Modifier.animateItem(),
                                 onClick = { movieForDetail = movieEntity },
                                 onLongClick = { selectedMovieForEdit = movieEntity }
                             )

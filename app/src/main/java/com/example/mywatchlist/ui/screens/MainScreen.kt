@@ -1,4 +1,6 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import com.example.mywatchlist.R
@@ -327,6 +329,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
     )
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
+    val reduceMotion = LocalReduceMotion.current
 
     Box(
         modifier = Modifier
@@ -373,7 +376,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                     // Animierte Farbe für die Hintergrundkapsel (sanftes Ein-/Ausblenden)
                     val animatedBackgroundColor by animateColorAsState(
                         targetValue = if (isSelected) AppTheme.YellowAccent.copy(alpha = 0.16f) else Color.Transparent,
-                        animationSpec = tween(durationMillis = 250), // 250ms Dauer für weichen Übergang
+                        animationSpec = CinemaMotion.effects(reduceMotion),
                         label = "pillColor"
                     )
 
@@ -384,10 +387,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                             isSelected -> 1.15f  // Icon wird 15% größer
                             else -> 1.0f         // Normalzustand
                         },
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy, // Mittlere Federung
-                            stiffness = Spring.StiffnessLow                 // Weiche Bewegung
-                        ),
+                        animationSpec = CinemaMotion.bouncy(reduceMotion), // Signatur-Bounce
                         label = "iconScale"
                     )
 
