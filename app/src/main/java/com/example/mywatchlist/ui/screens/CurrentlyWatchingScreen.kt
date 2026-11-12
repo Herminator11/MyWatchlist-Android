@@ -1,4 +1,19 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import com.example.mywatchlist.data.CardDensity
+import com.example.mywatchlist.data.sortedFor
+import com.example.mywatchlist.ui.components.cards.LocalListPrefs
+import com.example.mywatchlist.ui.components.cards.PosterTile
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
+import com.example.mywatchlist.ui.components.common.EmptyState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LiveTv
+import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -30,13 +45,18 @@ fun CurrentlyWatchingScreen(
     modifier: Modifier = Modifier,
     libraryViewModel: LibraryViewModel
 ) {
-    val allSavedMovies by libraryViewModel.allMovies.collectAsState()
-    val currentlyWatchingList = allSavedMovies.filter { it.listType == "CURRENTLY_WATCHING" }
+    val allSavedMovies by libraryViewModel.allMovies.collectAsStateWithLifecycle()
+    // nur neu filtern, wenn sich die Liste ändert – nicht bei jeder Recomposition
+    val listPrefs = LocalListPrefs.current
+    val currentlyWatchingList = remember(allSavedMovies, listPrefs.watchingSort) {
+        allSavedMovies.filter { it.listType == "CURRENTLY_WATCHING" }.sortedFor(listPrefs.watchingSort)
+    }
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDatePicker by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 
@@ -47,12 +67,34 @@ fun CurrentlyWatchingScreen(
             .blur(blurRadius)
     ) {
         if (currentlyWatchingList.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.empty_watching),
-                    color = AppTheme.TextSecondary,
-                    textAlign = TextAlign.Center
-                )
+            EmptyState(
+                icon = Icons.Outlined.LiveTv,
+                message = stringResource(R.string.empty_watching),
+                hint = stringResource(R.string.empty_hint_search)
+            )
+        } else if (listPrefs.density == CardDensity.POSTER) {
+            // Poster-Raster (Einstellung „Kartendichte“)
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 104.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    ScreenHeader(title = stringResource(R.string.list_currently_watching))
+                }
+                gridItems(currentlyWatchingList, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
+                    PosterTile(
+                        item = movieEntity,
+                        modifier = Modifier.animateItem(),
+                        onFinishClick = { movieForDatePicker = movieEntity },
+                        onClick = { movieForDetail = movieEntity },
+                        onLongClick = { selectedMovieForEdit = movieEntity }
+                    )
+                }
             }
         } else {
             LazyColumn(
@@ -67,6 +109,7 @@ fun CurrentlyWatchingScreen(
                 items(items = currentlyWatchingList, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
                     UniversalMediaCard(
                         item = movieEntity,
+                        modifier = Modifier.animateItem(),
                         // Done-Button öffnet DatePicker (Story 3.2)
                         onFinishClick = { movieForDatePicker = movieEntity },
                         onClick = { movieForDetail = movieEntity },
@@ -114,52 +157,13 @@ fun CurrentlyWatchingScreen(
 // ─────────────────────────────────────────────
 // DATE PICKER DIALOG (Story 3.2)
 // ─────────────────────────────────────────────
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FinishedDatePickerDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState()
-
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val millis = datePickerState.selectedDateMillis
-                    if (millis != null) {
-                        val sdf = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault())
-                        onConfirm(sdf.format(java.util.Date(millis)))
-                    }
-                }
-            ) {
-                Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
-            }
-        },
-        colors = DatePickerDefaults.colors(
-            containerColor = AppTheme.DarkSurface
-        )
-    ) {
-        DatePicker(
-            state = datePickerState,
-            colors = DatePickerDefaults.colors(
-                containerColor = AppTheme.DarkSurface,
-                titleContentColor = AppTheme.TextPrimary,
-                headlineContentColor = AppTheme.TextPrimary,
-                weekdayContentColor = AppTheme.TextSecondary,
-                subheadContentColor = AppTheme.TextSecondary,
-                dayContentColor = AppTheme.TextPrimary,
-                selectedDayContainerColor = AppTheme.YellowAccent,
-                selectedDayContentColor = Color.Black,
-                todayContentColor = AppTheme.YellowAccent,
-                todayDateBorderColor = AppTheme.YellowAccent
-            )
-        )
-    }
+    CinemaDatePickerDialog(
+        onConfirm = { _, display -> onConfirm(display) },
+        onDismiss = onDismiss
+    )
 }

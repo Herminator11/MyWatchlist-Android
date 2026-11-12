@@ -105,7 +105,7 @@ class ErrorHandlingTest {
 
         val error = viewModel.error.value
         assertNotNull("error darf nicht null sein wenn DAO wirft", error)
-        assertEquals("Eintrag konnte nicht hinzugefügt werden", error)
+        assertEquals("Could not add entry", error)
     }
 
     @Test
@@ -120,7 +120,7 @@ class ErrorHandlingTest {
 
         val error = viewModel.error.value
         assertNotNull("error darf nicht null sein wenn DAO wirft", error)
-        assertEquals("Eintrag konnte nicht gelöscht werden", error)
+        assertEquals("Could not delete entry", error)
     }
 
     @Test
@@ -135,7 +135,7 @@ class ErrorHandlingTest {
 
         val error = viewModel.error.value
         assertNotNull("error darf nicht null sein wenn DAO wirft", error)
-        assertEquals("Eintrag konnte nicht verschoben werden", error)
+        assertEquals("Could not move entry", error)
     }
 
     @Test

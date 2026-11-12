@@ -1,4 +1,8 @@
 package com.example.mywatchlist.ui.screens
+import com.example.mywatchlist.ui.components.cards.LocalContentPrefs
+import androidx.compose.ui.platform.LocalResources
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -60,6 +64,8 @@ fun SearchScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+    // Ressourcen über LocalResources → reagiert korrekt auf Konfigurationswechsel
+    val resources = LocalResources.current
     var selectedMovieForAdd by remember { mutableStateOf<TmdbMovie?>(null) }
     var movieForDetail by remember { mutableStateOf<TmdbMovie?>(null) }
 
@@ -68,6 +74,7 @@ fun SearchScreen(
 
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 
@@ -80,8 +87,8 @@ fun SearchScreen(
             libraryViewModel.addNewCard(movie, WatchListType.WANT_TO_WATCH)
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.snackbar_added_to_watchlist, movie.displayTitle),
-                    actionLabel = context.getString(R.string.action_undo),
+                    message = resources.getString(R.string.snackbar_added_to_watchlist, movie.displayTitle),
+                    actionLabel = resources.getString(R.string.action_undo),
                     duration = SnackbarDuration.Short
                 )
                 if (result == SnackbarResult.ActionPerformed) {
@@ -400,7 +407,7 @@ private fun AddSwipeBackground(state: SwipeToDismissBoxState) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
-            tint = if (active) Color.Black else AppTheme.TextSecondary,
+            tint = if (active) AppTheme.OnAccent else AppTheme.TextSecondary,
             modifier = Modifier.size(22.dp)
         )
         Text(
@@ -409,7 +416,7 @@ private fun AddSwipeBackground(state: SwipeToDismissBoxState) {
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
-            color = if (active) Color.Black else AppTheme.TextSecondary
+            color = if (active) AppTheme.OnAccent else AppTheme.TextSecondary
         )
     }
 }
@@ -425,16 +432,21 @@ private fun SearchResultCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(110.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = AppTheme.DarkSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 110.dp)
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             AsyncImage(
                 model = movie.fullPosterPath,
-                contentDescription = movie.displayTitle,
+                contentDescription = null,
                 modifier = Modifier
                     .width(75.dp)
                     .fillMaxHeight()
@@ -456,6 +468,17 @@ private fun SearchResultCard(
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 20.sp
                 )
+                // Originaltitel (Einstellung „Originaltitel zeigen“)
+                val original = movie.differingOriginalTitle
+                if (LocalContentPrefs.current.showOriginalTitles && original != null) {
+                    Text(
+                        text = original,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                        color = AppTheme.TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -488,7 +511,7 @@ private fun SearchResultCard(
                 Icon(
                     imageVector = if (alreadySaved) Icons.Default.Check else Icons.Default.Add,
                     contentDescription = if (alreadySaved) stringResource(R.string.cd_already_saved) else stringResource(R.string.action_add),
-                    tint = if (alreadySaved) AppTheme.TextSecondary else Color.Black,
+                    tint = if (alreadySaved) AppTheme.TextSecondary else AppTheme.OnAccent,
                     modifier = Modifier.size(20.dp)
                 )
             }

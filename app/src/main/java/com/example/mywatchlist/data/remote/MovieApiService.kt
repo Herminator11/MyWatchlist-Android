@@ -1,5 +1,6 @@
 package com.example.mywatchlist.data.remote
 
+import com.example.mywatchlist.data.TmdbLanguage
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -119,8 +120,18 @@ data class TmdbMovie(
     @SerializedName("poster_path")
     val posterPath: String?,
 
-    val overview: String?
+    val overview: String?,
+
+    // Originaltitel (nur Anzeige in der Suche, optional)
+    @SerializedName("original_title")
+    val originalTitle: String? = null,
+    @SerializedName("original_name")
+    val originalName: String? = null,
 ) {
+    /** Originaltitel, falls er sich vom angezeigten Titel unterscheidet. */
+    val differingOriginalTitle: String?
+        get() = (originalTitle ?: originalName)?.takeIf { it.isNotBlank() && it != displayTitle }
+
     val displayTitle: String
         get() = title ?: name ?: "Unknown title"
 
@@ -145,14 +156,14 @@ interface MovieApiService {
         @Query("query") query: String,
         @Query("page") page: Int = 1,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US"
+        @Query("language") language: String = TmdbConfig.language
     ): MovieSearchResponse
 
     @GET("tv/{id}")
     suspend fun getTvDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String = TmdbConfig.language,
         @Query("append_to_response") appendToResponse: String = "credits"
     ): TvDetails
 
@@ -160,9 +171,22 @@ interface MovieApiService {
     suspend fun getMovieDetails(
         @Path("id") id: Int,
         @Query("api_key") apiKey: String = TMDB_API_KEY,
-        @Query("language") language: String = "en-US",
+        @Query("language") language: String = TmdbConfig.language,
         @Query("append_to_response") appendToResponse: String = "credits"
     ): MovieDetails
+}
+
+/**
+ * Aktive TMDB-Sprache. Gesetzt wird nur die Einstellung (in MyWatchlistApp,
+ * unabhängig von der UI); der Sprachcode wird bei JEDEM Aufruf aufgelöst,
+ * damit „Systemsprache“ einem Wechsel der Gerätesprache sofort folgt.
+ */
+object TmdbConfig {
+    @Volatile
+    var setting: TmdbLanguage = TmdbLanguage.EN
+
+    val language: String
+        get() = setting.resolve(java.util.Locale.getDefault())
 }
 
 object MovieApi {

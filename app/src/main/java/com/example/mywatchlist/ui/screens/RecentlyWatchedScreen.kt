@@ -1,4 +1,10 @@
 package com.example.mywatchlist.ui.screens
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
+import com.example.mywatchlist.ui.components.common.EmptyState
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -45,14 +51,15 @@ fun RecentlyWatchedScreen(
     libraryViewModel: LibraryViewModel
 ) {
     // Gefilterte + vorsortierte StateFlows – keine Verarbeitung mehr im Composable
-    val tvEntries by libraryViewModel.recentlyWatchedTv.collectAsState()
-    val movieEntries by libraryViewModel.recentlyWatchedMovies.collectAsState()
+    val tvEntries by libraryViewModel.recentlyWatchedTv.collectAsStateWithLifecycle()
+    val movieEntries by libraryViewModel.recentlyWatchedMovies.collectAsStateWithLifecycle()
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
     // Lokaler Filter, um einen bereits gesehenen Titel schnell zu finden
     var filterQuery by remember { mutableStateOf("") }
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 
@@ -147,13 +154,11 @@ fun RecentlyWatchedScreen(
             }
 
             if (grouped.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = if (filterQuery.isBlank()) stringResource(R.string.empty_history)
-                        else stringResource(R.string.recently_no_match),
-                        color = AppTheme.TextSecondary
-                    )
-                }
+                EmptyState(
+                    icon = if (filterQuery.isBlank()) Icons.Outlined.History else Icons.Outlined.SearchOff,
+                    message = if (filterQuery.isBlank()) stringResource(R.string.empty_history)
+                    else stringResource(R.string.recently_no_match)
+                )
             } else {
                 LazyColumn(
                     state = if (page == 0) tvListState else movieListState,
@@ -172,6 +177,7 @@ fun RecentlyWatchedScreen(
                         items(yearEntries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { movieEntity ->
                             UniversalMediaCard(
                                 item = movieEntity,
+                                modifier = Modifier.animateItem(),
                                 onClick = { movieForDetail = movieEntity },
                                 onLongClick = { selectedMovieForEdit = movieEntity }
                             )

@@ -86,4 +86,12 @@ interface MovieDao {
     // NEU: Alle sortOrders einer Liste auf einmal updaten (nach Drag & Drop)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateAll(movies: List<MovieEntity>): LongArray
+
+    // ── Backup ──
+    @Query("SELECT * FROM movies_table")
+    suspend fun getAllOnce(): List<MovieEntity>
+
+    // Restore: IGNORE statt REPLACE → vorhandene Einträge werden NIE überschrieben
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertMissing(movies: List<MovieEntity>): LongArray
 }

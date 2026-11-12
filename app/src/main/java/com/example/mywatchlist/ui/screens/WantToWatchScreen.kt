@@ -1,4 +1,19 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import com.example.mywatchlist.data.CardDensity
+import com.example.mywatchlist.data.sortedFor
+import com.example.mywatchlist.ui.components.cards.LocalListPrefs
+import com.example.mywatchlist.ui.components.cards.PosterTile
+import com.example.mywatchlist.data.MediaTab
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
+import com.example.mywatchlist.ui.components.common.EmptyState
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -58,19 +73,25 @@ fun WantToWatchScreen(
     libraryViewModel: LibraryViewModel
 ) {
     // Gefilterte + vorsortierte StateFlows direkt aus dem ViewModel
-    val tvEntries by libraryViewModel.wantToWatchTv.collectAsState()
-    val movieEntries by libraryViewModel.wantToWatchMovies.collectAsState()
+    val tvEntries by libraryViewModel.wantToWatchTv.collectAsStateWithLifecycle()
+    val movieEntries by libraryViewModel.wantToWatchMovies.collectAsStateWithLifecycle()
     var selectedMovieForEdit by remember { mutableStateOf<MovieEntity?>(null) }
     var selectedMovieForMove by remember { mutableStateOf<MovieEntity?>(null) }
     var movieForDetail by remember { mutableStateOf<MovieEntity?>(null) }
     var showSearch by remember { mutableStateOf(false) }
     val blurRadius by animateDpAsState(
         targetValue = if (movieForDetail != null) 18.dp else 0.dp,
+        animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
         label = "detail_blur"
     )
 
     val tabs = listOf(stringResource(R.string.tab_series), stringResource(R.string.tab_movies))
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val listPrefs = LocalListPrefs.current
+    // Start-Tab aus den Einstellungen (Serien oder Filme)
+    val pagerState = rememberPagerState(
+        initialPage = if (listPrefs.watchlistStartTab == MediaTab.MOVIES) 1 else 0,
+        pageCount = { tabs.size }
+    )
     val coroutineScope = rememberCoroutineScope()
 
     Box(
@@ -116,14 +137,37 @@ fun WantToWatchScreen(
         ) { page ->
             val isTvPage = page == 0
             // Liste kommt bereits gefiltert + alphabetisch sortiert aus dem ViewModel
-            val entries = if (isTvPage) tvEntries else movieEntries
+            val raw = if (isTvPage) tvEntries else movieEntries
+            val entries = remember(raw, listPrefs.watchlistSort) { raw.sortedFor(listPrefs.watchlistSort) }
 
             if (entries.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.empty_watchlist),
-                        color = AppTheme.TextSecondary
-                    )
+                EmptyState(
+                    icon = Icons.Outlined.BookmarkBorder,
+                    message = stringResource(R.string.empty_watchlist),
+                    hint = stringResource(R.string.empty_hint_search)
+                )
+            } else if (listPrefs.density == CardDensity.POSTER) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 104.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(18.dp),
+                    contentPadding = PaddingValues(top = 16.dp, bottom = 192.dp)
+                ) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        ScreenHeader(title = stringResource(R.string.list_want_to_watch))
+                    }
+                    gridItems(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
+                        PosterTile(
+                            item = entity,
+                            modifier = Modifier.animateItem(),
+                            onMoveClick = { selectedMovieForMove = entity },
+                            onClick = { movieForDetail = entity },
+                            onLongClick = { selectedMovieForEdit = entity }
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
@@ -138,6 +182,7 @@ fun WantToWatchScreen(
                     items(entries, key = { "${it.id}_${it.listType}_${it.seasonNumber}" }) { entity ->
                         UniversalMediaCard(
                             item = entity,
+                            modifier = Modifier.animateItem(),
                             onMoveClick = { selectedMovieForMove = entity },
                             onClick = { movieForDetail = entity },
                             onLongClick = { selectedMovieForEdit = entity }
@@ -155,7 +200,7 @@ fun WantToWatchScreen(
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = 104.dp),
             containerColor = AppTheme.YellowAccent,
-            contentColor = Color.Black
+            contentColor = AppTheme.OnAccent
         ) {
             Text(
                 text = "+",
@@ -520,7 +565,7 @@ private fun SearchAddRow(
                     stringResource(R.string.cd_already_saved)
                 else
                     stringResource(R.string.wtw_search_added),
-                tint = if (alreadySaved) AppTheme.TextSecondary else Color.Black,
+                tint = if (alreadySaved) AppTheme.TextSecondary else AppTheme.OnAccent,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -581,7 +626,7 @@ private fun MoveToWatchingSheet(
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black
+                    contentColor = AppTheme.OnAccent
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
@@ -693,7 +738,7 @@ private fun MoveToWatchedSheet(
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black,
+                    contentColor = AppTheme.OnAccent,
                     disabledContainerColor = AppTheme.DarkSurface2,
                     disabledContentColor = AppTheme.TextSecondary
                 ),
@@ -705,48 +750,15 @@ private fun MoveToWatchedSheet(
     }
 
     if (showDatePickerDialog) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDateMillis
+        CinemaDatePickerDialog(
+            initialSelectedDateMillis = selectedDateMillis,
+            onConfirm = { millis, display ->
+                selectedDateDisplay = display
+                selectedDateMillis = millis
+                showDatePickerDialog = false
+            },
+            onDismiss = { showDatePickerDialog = false },
+            onConfirmWithoutSelection = { showDatePickerDialog = false }
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePickerDialog = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val millis = datePickerState.selectedDateMillis
-                        if (millis != null) {
-                            val sdf = java.text.SimpleDateFormat(
-                                "dd.MM.yyyy", java.util.Locale.getDefault()
-                            )
-                            selectedDateDisplay = sdf.format(java.util.Date(millis))
-                            selectedDateMillis = millis
-                        }
-                        showDatePickerDialog = false
-                    }
-                ) { Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePickerDialog = false }) {
-                    Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
-                }
-            },
-            colors = DatePickerDefaults.colors(containerColor = AppTheme.DarkSurface)
-        ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    containerColor = AppTheme.DarkSurface,
-                    titleContentColor = AppTheme.TextPrimary,
-                    headlineContentColor = AppTheme.TextPrimary,
-                    weekdayContentColor = AppTheme.TextSecondary,
-                    subheadContentColor = AppTheme.TextSecondary,
-                    dayContentColor = AppTheme.TextPrimary,
-                    selectedDayContainerColor = AppTheme.YellowAccent,
-                    selectedDayContentColor = Color.Black,
-                    todayContentColor = AppTheme.YellowAccent,
-                    todayDateBorderColor = AppTheme.YellowAccent
-                )
-            )
-        }
     }
 }

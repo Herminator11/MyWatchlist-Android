@@ -1,4 +1,7 @@
 package com.example.mywatchlist.ui.components.cards
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import com.example.mywatchlist.data.CardDensity
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -9,6 +12,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,7 +53,7 @@ import com.example.mywatchlist.ui.theme.AppTheme
 // onClick      → Detail-Popup öffnen
 // onLongClick  → Bearbeiten (ersetzt die alte Swipe-Geste)
 // ─────────────────────────────────────────────
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun UniversalMediaCard(
     item: MovieEntity,
@@ -59,14 +65,18 @@ fun UniversalMediaCard(
     showFavoriteBadge: Boolean = false,
     dragHandle: (@Composable () -> Unit)? = null
 ) {
+    val prefs = LocalListPrefs.current
+    val compact = prefs.density == CardDensity.COMPACT
+    val minHeight = if (compact) 76.dp else 110.dp
+    val posterWidth = if (compact) 52.dp else 75.dp
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(110.dp)
             .then(
                 if (onClick != null || onLongClick != null)
                     Modifier.combinedClickable(
                         onClick = { onClick?.invoke() },
+                        onLongClickLabel = if (onLongClick != null) stringResource(R.string.a11y_edit_entry) else null,
                         onLongClick = onLongClick
                     )
                 else Modifier
@@ -75,17 +85,24 @@ fun UniversalMediaCard(
         colors = CardDefaults.cardColors(containerColor = AppTheme.DarkSurface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
+        // Mindesthöhe statt fester Höhe: bei großer Systemschrift wächst die
+        // Karte mit, statt Titel/Metazeile abzuschneiden.
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = minHeight)
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // POSTER
             if (item.posterPath != null) {
                 AsyncImage(
-                    model = "https://image.tmdb.org/t/p/w500${item.posterPath}",
-                    contentDescription = item.title,
+                    // w185 reicht für 75-dp-Thumbnails (w500 nur im Detail-Dialog)
+                    model = "https://image.tmdb.org/t/p/w185${item.posterPath}",
+                    // Titel steht als Text daneben → Poster ist für TalkBack dekorativ
+                    contentDescription = null,
                     modifier = Modifier
-                        .width(75.dp)
+                        .width(posterWidth)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)),
                     contentScale = ContentScale.Crop
@@ -93,7 +110,7 @@ fun UniversalMediaCard(
             } else {
                 Box(
                     modifier = Modifier
-                        .width(75.dp)
+                        .width(posterWidth)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
                         .background(AppTheme.DarkSurface2),
@@ -107,7 +124,7 @@ fun UniversalMediaCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 14.dp, top = 12.dp, bottom = 12.dp),
+                    .padding(start = 14.dp, top = if (compact) 8.dp else 12.dp, bottom = if (compact) 8.dp else 12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 val titleText = if (item.mediaType == "tv" && item.seasonNumber.isNotBlank()) {
@@ -125,50 +142,66 @@ fun UniversalMediaCard(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = AppTheme.TextPrimary,
-                        maxLines = 2,
+                        maxLines = if (compact) 1 else 2,
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 19.sp,
                         modifier = Modifier.weight(1f, fill = false)
                     )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(if (compact) 3.dp else 6.dp))
 
+                // Gesehen-Datum (Verlauf) wird immer gezeigt, das Erscheinungsjahr nur,
+                // wenn „Jahr anzeigen“ aktiv ist.
                 val displayDate = item.finishedDate
-                    ?: if (item.date.length >= 4) item.date.take(4) else item.date
+                    ?: if (!prefs.showYear) null
+                    else if (item.date.length >= 4) item.date.take(4) else item.date.ifBlank { null }
 
-                Row(
+                // FlowRow: passen Jahr/Typ/Kategorie nicht in eine Zeile, rutscht ein
+                // ganzer Badge in die nächste Zeile – statt mitten im Wort umzubrechen.
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    itemVerticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = displayDate,
-                        fontFamily = AppTheme.Mono,
-                        fontSize = 11.sp,
-                        color = AppTheme.TextSecondary,
-                        fontWeight = FontWeight.Normal
-                    )
-                    Text("\u00B7", color = AppTheme.TextTertiary, fontSize = 12.sp)
-                    Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.DarkSurface2) {
+                    if (displayDate != null) {
                         Text(
-                            text = if (item.mediaType == "tv") stringResource(R.string.tag_series) else stringResource(R.string.tag_film),
+                            text = displayDate,
                             fontFamily = AppTheme.Mono,
-                            fontSize = 9.sp,
-                            letterSpacing = 1.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
                             color = AppTheme.TextSecondary,
-                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                            fontWeight = FontWeight.Normal
                         )
+                    }
+                    if (displayDate != null && prefs.showTypeTag) {
+                        Text("\u00B7", color = AppTheme.TextTertiary, fontSize = 12.sp)
+                    }
+                    if (prefs.showTypeTag) {
+                        Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.DarkSurface2) {
+                            Text(
+                                text = if (item.mediaType == "tv") stringResource(R.string.tag_series) else stringResource(R.string.tag_film),
+                                fontFamily = AppTheme.Mono,
+                                fontSize = 11.sp,
+                                letterSpacing = 1.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AppTheme.TextSecondary,
+                                maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                            )
+                        }
                     }
                     if (showFavoriteBadge && item.mediaType == "tv" && !item.favoriteCategory.isNullOrBlank()) {
                         Surface(shape = RoundedCornerShape(6.dp), color = AppTheme.YellowAccent.copy(alpha = 0.14f)) {
                             Text(
                                 text = item.favoriteCategory,
                                 fontFamily = AppTheme.Mono,
-                                fontSize = 9.sp,
+                                fontSize = 11.sp,
                                 letterSpacing = 1.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = AppTheme.GoldBright,
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
                             )
                         }
                     }
@@ -181,17 +214,18 @@ fun UniversalMediaCard(
                 onFinishClick != null -> {
                     Box(
                         modifier = Modifier
-                            .padding(end = 14.dp)
-                            .size(38.dp)
+                            .padding(end = 10.dp)
+                            .size(48.dp)
+                            .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(AppTheme.YellowAccent)
-                            .clickable { onFinishClick() },
+                            .clickable(role = Role.Button) { onFinishClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Mark as finished",
-                            tint = Color.Black,
+                            contentDescription = stringResource(R.string.a11y_mark_finished),
+                            tint = AppTheme.OnAccent,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -199,11 +233,12 @@ fun UniversalMediaCard(
                 onMoveClick != null -> {
                     Box(
                         modifier = Modifier
-                            .padding(end = 14.dp)
-                            .size(38.dp)
+                            .padding(end = 10.dp)
+                            .size(48.dp)
+                            .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(AppTheme.YellowAccent)
-                            .clickable { onMoveClick() },
+                            .clickable(role = Role.Button) { onMoveClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -211,7 +246,7 @@ fun UniversalMediaCard(
                                 Icons.Default.PlayArrow else Icons.Default.Check,
                             contentDescription = if (item.mediaType == "tv")
                                 stringResource(R.string.move_start_watching) else stringResource(R.string.move_mark_watched),
-                            tint = Color.Black,
+                            tint = AppTheme.OnAccent,
                             modifier = Modifier.size(20.dp)
                         )
                     }

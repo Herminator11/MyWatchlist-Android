@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.components.sheets
+import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.local.*
@@ -174,7 +175,7 @@ fun GlobalEditSheet(
                         },
                         colors = CheckboxDefaults.colors(
                             checkedColor = AppTheme.YellowAccent,
-                            checkmarkColor = Color.Black,
+                            checkmarkColor = AppTheme.OnAccent,
                             uncheckedColor = AppTheme.TextSecondary
                         )
                     )
@@ -205,7 +206,7 @@ fun GlobalEditSheet(
                             onCheckedChange = { if (it) selectedCategory = category },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = AppTheme.YellowAccent,
-                                checkmarkColor = Color.Black,
+                                checkmarkColor = AppTheme.OnAccent,
                                 uncheckedColor = AppTheme.TextSecondary
                             )
                         )
@@ -327,7 +328,7 @@ fun GlobalEditSheet(
                     .padding(horizontal = 20.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black
+                    contentColor = AppTheme.OnAccent
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
@@ -338,49 +339,16 @@ fun GlobalEditSheet(
 
     // ── DATE PICKER DIALOG ───────────────────────────────────
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDateMillis
+        CinemaDatePickerDialog(
+            initialSelectedDateMillis = selectedDateMillis,
+            onConfirm = { millis, display ->
+                selectedDateDisplay = display
+                selectedDateMillis = millis
+                showDatePicker = false
+            },
+            onDismiss = { showDatePicker = false },
+            onConfirmWithoutSelection = { showDatePicker = false }
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val millis = datePickerState.selectedDateMillis
-                        if (millis != null) {
-                            val sdf = java.text.SimpleDateFormat(
-                                "dd.MM.yyyy", java.util.Locale.getDefault()
-                            )
-                            selectedDateDisplay = sdf.format(java.util.Date(millis))
-                            selectedDateMillis = millis
-                        }
-                        showDatePicker = false
-                    }
-                ) { Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
-                }
-            },
-            colors = DatePickerDefaults.colors(containerColor = AppTheme.DarkSurface)
-        ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    containerColor = AppTheme.DarkSurface,
-                    titleContentColor = AppTheme.TextPrimary,
-                    headlineContentColor = AppTheme.TextPrimary,
-                    weekdayContentColor = AppTheme.TextSecondary,
-                    subheadContentColor = AppTheme.TextSecondary,
-                    dayContentColor = AppTheme.TextPrimary,
-                    selectedDayContainerColor = AppTheme.YellowAccent,
-                    selectedDayContentColor = Color.Black,
-                    todayContentColor = AppTheme.YellowAccent,
-                    todayDateBorderColor = AppTheme.YellowAccent
-                )
-            )
-        }
     }
 }
 
@@ -400,7 +368,7 @@ fun SheetSectionLabel(label: String) {
     Text(
         text = label.uppercase(),
         fontFamily = AppTheme.Mono,
-        fontSize = 10.sp,
+        fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         color = AppTheme.YellowAccent,
         letterSpacing = 2.sp,

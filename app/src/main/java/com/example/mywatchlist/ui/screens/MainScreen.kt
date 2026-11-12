@@ -1,11 +1,23 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.mywatchlist.data.ListPrefs
+import com.example.mywatchlist.data.AppearancePrefs
+import com.example.mywatchlist.ui.theme.LocalHapticsEnabled
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mywatchlist.ui.theme.CinemaMotion
+import com.example.mywatchlist.ui.theme.LocalReduceMotion
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import com.example.mywatchlist.R
 import com.example.mywatchlist.ui.viewmodel.*
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -111,16 +123,18 @@ fun MovieTrackerTopBar(onProfileClick: () -> Unit) {
             }
         },
         actions = {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = stringResource(R.string.settings_title),
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(26.dp)
-                    .clip(CircleShape)
-                    .clickable { onProfileClick() },
-                tint = AppTheme.TextSecondary
-            )
+            // IconButton statt klickbarem Icon → 48-dp-Touch-Ziel + Button-Rolle
+            IconButton(
+                onClick = onProfileClick,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.settings_title),
+                    modifier = Modifier.size(26.dp),
+                    tint = AppTheme.TextSecondary
+                )
+            }
         }
     )
 }
@@ -168,18 +182,37 @@ sealed class BottomNavItem(
         inactiveIcon = Icons.Outlined.Search,
         labelRes = R.string.nav_search
     )
+
+    companion object {
+        /** Alle Tabs in der Standard-Reihenfolge. */
+        val all: List<BottomNavItem> by lazy { listOf(WantToWatch, CurrentlyWatching, RecentlyWatched, Favorites, Search) }
+
+        fun fromRoute(route: String): BottomNavItem? = all.firstOrNull { it.route == route }
+    }
 }
 
 const val ROUTE_SETTINGS = "settings"
+const val ROUTE_SETTINGS_NAVIGATION = "settings/navigation"
 
 @Composable
-fun MainScreenApp() {
+fun MainScreenApp(
+    openTabRequest: String? = null,
+    onOpenTabHandled: () -> Unit = {},
+) {
     val rootNavController = rememberNavController()
     val settingsViewModel: SettingsViewModel = viewModel()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
-    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsState()
+    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
+    val appearance by settingsViewModel.appearance.collectAsStateWithLifecycle()
+    val listPrefs by settingsViewModel.listPrefs.collectAsStateWithLifecycle()
+    val contentPrefs by settingsViewModel.contentPrefs.collectAsStateWithLifecycle()
 
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Widget-Tipp während Einstellungen offen sind → zurück zur Hauptansicht
+    LaunchedEffect(openTabRequest) {
+        if (openTabRequest != null) rootNavController.popBackStack("main", inclusive = false)
+    }
 
     NavHost(
         navController = rootNavController,
@@ -187,43 +220,75 @@ fun MainScreenApp() {
     ) {
         composable("main") {
             MainContent(
-                onOpenSettings = { rootNavController.navigate(ROUTE_SETTINGS) }
+                settingsViewModel = settingsViewModel,
+                onOpenSettings = { rootNavController.navigate(ROUTE_SETTINGS) },
+                openTabRequest = openTabRequest,
+                onOpenTabHandled = onOpenTabHandled
             )
         }
         composable(ROUTE_SETTINGS) {
             // Export-Zähler reaktiv aus den gefilterten StateFlows
-            val exportCounts by libraryViewModel.exportCountsState.collectAsState()
+            val exportCounts by libraryViewModel.exportCountsState.collectAsStateWithLifecycle()
             SettingsScreen(
                 onBack = { rootNavController.popBackStack() },
                 autoHideNavBar = autoHideNavBar,
                 onAutoHideNavBarChanged = { settingsViewModel.setAutoHideNavBar(it) },
+                onOpenNavigation = { rootNavController.navigate(ROUTE_SETTINGS_NAVIGATION) },
+                appearance = appearance ?: AppearancePrefs(),
+                onAppearanceChange = { settingsViewModel.updateAppearance(it) },
+                listPrefs = listPrefs ?: ListPrefs(),
+                onListPrefsChange = { settingsViewModel.updateListPrefs(it) },
+                contentPrefs = contentPrefs,
+                onContentPrefsChange = { settingsViewModel.updateContentPrefs(it) },
+                onBuildBackup = { libraryViewModel.buildBackupJson() },
+                onCountMissing = { libraryViewModel.countMissingFromBackup(it) },
+                onRestoreMissing = { libraryViewModel.restoreMissingFromBackup(it) },
                 exportCounts = exportCounts,
                 onBuildExportText = { selection ->
                     libraryViewModel.buildExportText(context, selection)
                 }
             )
         }
+        composable(ROUTE_SETTINGS_NAVIGATION) {
+            val navConfig by settingsViewModel.navConfig.collectAsStateWithLifecycle()
+            navConfig?.let { config ->
+                NavigationSettingsScreen(
+                    config = config,
+                    onBack = { rootNavController.popBackStack() },
+                    onChange = { transform -> settingsViewModel.updateNavConfig(transform) },
+                    onReset = { settingsViewModel.resetNavConfig() }
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun MainContent(onOpenSettings: () -> Unit) {
+private fun MainContent(
+    // Activity-weite Instanz von außen: ein eigenes viewModel() hier wäre an den
+    // NavBackStackEntry gebunden (zweite Instanz, navConfig startet wieder bei null).
+    settingsViewModel: SettingsViewModel,
+    onOpenSettings: () -> Unit,
+    openTabRequest: String? = null,
+    onOpenTabHandled: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
-    val settingsViewModel: SettingsViewModel = viewModel()
 
-    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsState()
+    val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
+    val navConfig by settingsViewModel.navConfig.collectAsStateWithLifecycle()
+    val appearance by settingsViewModel.appearance.collectAsStateWithLifecycle()
 
     // App-weite Undo-Snackbar fürs Löschen aus Listen
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val resources = LocalResources.current
     LaunchedEffect(libraryViewModel) {
         libraryViewModel.events.collect { event ->
             when (event) {
                 is LibraryViewModel.LibraryEvent.Deleted -> {
                     val result = snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.snackbar_deleted, event.movie.title),
-                        actionLabel = context.getString(R.string.action_undo),
+                        message = resources.getString(R.string.snackbar_deleted, event.movie.title),
+                        actionLabel = resources.getString(R.string.action_undo),
                         duration = SnackbarDuration.Short
                     )
                     if (result == SnackbarResult.ActionPerformed) {
@@ -256,6 +321,31 @@ private fun MainContent(onOpenSettings: () -> Unit) {
         }
     }
 
+    // Bis die gespeicherte Tab-Konfiguration geladen ist (wenige ms), nur den
+    // Hintergrund zeigen – so startet die App direkt im gewählten Start-Tab.
+    val config = navConfig ?: run {
+        Box(Modifier.fillMaxSize().background(AppTheme.DarkBg))
+        return
+    }
+
+    // Start-Tab nur beim ersten Aufbau übernehmen: ein geänderter startDestination
+    // würde den Graphen neu setzen und Back-Stack + gespeicherte Tab-Zustände löschen.
+    // Die neue Einstellung greift beim nächsten App-Start.
+    val startRoute = rememberSaveable { config.start }
+
+    // Vom Widget angeforderten Tab öffnen (alle Routen sind im Graph, auch ausgeblendete)
+    LaunchedEffect(openTabRequest) {
+        val route = openTabRequest ?: return@LaunchedEffect
+        if (BottomNavItem.fromRoute(route) != null) {
+            navController.navigate(route) {
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+        onOpenTabHandled()
+    }
+
     Scaffold(
         containerColor = AppTheme.DarkBg,
         topBar = {
@@ -269,7 +359,7 @@ private fun MainContent(onOpenSettings: () -> Unit) {
         ) {
             NavHost(
                 navController = navController,
-                startDestination = BottomNavItem.CurrentlyWatching.route,
+                startDestination = startRoute,
                 modifier = Modifier
                     .fillMaxSize()
                     .haze(state = hazeState)
@@ -288,7 +378,12 @@ private fun MainContent(onOpenSettings: () -> Unit) {
                     .align(Alignment.BottomCenter)
                     .offset { IntOffset(x = 0, y = bottomBarOffsetHeightPx.floatValue.roundToInt()) }
             ) {
-                FloatingBottomNavigation(navController = navController, hazeState = hazeState)
+                FloatingBottomNavigation(
+                    navController = navController,
+                    hazeState = hazeState,
+                    items = config.visible.mapNotNull(BottomNavItem::fromRoute),
+                    showLabels = appearance?.navLabels == true
+                )
             }
 
             // Undo-Snackbar über der Floating-Navigation
@@ -312,16 +407,16 @@ private fun MainContent(onOpenSettings: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState) {
-    val items = listOf(
-        BottomNavItem.WantToWatch,
-        BottomNavItem.CurrentlyWatching,
-        BottomNavItem.RecentlyWatched,
-        BottomNavItem.Favorites,
-        BottomNavItem.Search
-    )
+fun FloatingBottomNavigation(
+    navController: NavController,
+    hazeState: HazeState,
+    items: List<BottomNavItem> = BottomNavItem.all,
+    showLabels: Boolean = false,
+) {
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
+    val reduceMotion = LocalReduceMotion.current
+    val hapticsEnabled = LocalHapticsEnabled.current
 
     Box(
         modifier = Modifier
@@ -333,7 +428,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
+                .height(if (showLabels) 72.dp else 64.dp)
                 .hazeChild(
                     state = hazeState,
                     shape = RoundedCornerShape(32.dp),
@@ -349,7 +444,8 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .selectableGroup(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -367,7 +463,7 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                     // Animierte Farbe für die Hintergrundkapsel (sanftes Ein-/Ausblenden)
                     val animatedBackgroundColor by animateColorAsState(
                         targetValue = if (isSelected) AppTheme.YellowAccent.copy(alpha = 0.16f) else Color.Transparent,
-                        animationSpec = tween(durationMillis = 250), // 250ms Dauer für weichen Übergang
+                        animationSpec = CinemaMotion.colorFade(reduceMotion),
                         label = "pillColor"
                     )
 
@@ -378,15 +474,12 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                             isSelected -> 1.15f  // Icon wird 15% größer
                             else -> 1.0f         // Normalzustand
                         },
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy, // Mittlere Federung
-                            stiffness = Spring.StiffnessLow                 // Weiche Bewegung
-                        ),
+                        animationSpec = CinemaMotion.bouncy(reduceMotion), // Signatur-Bounce
                         label = "iconScale"
                     )
 
                     LaunchedEffect(tooltipState.isVisible) {
-                        if (tooltipState.isVisible) {
+                        if (tooltipState.isVisible && hapticsEnabled) {
                             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                         }
                     }
@@ -405,12 +498,15 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                                     shape = RoundedCornerShape(20.dp)
                                 )
                                 // HIER übergeben wir die interactionSource für die isPressed-Erkennung
-                                .clickable(
+                                // selectable + Role.Tab → TalkBack sagt "Tab, ausgewählt"
+                                .selectable(
+                                    selected = isSelected,
                                     interactionSource = interactionSource,
-                                    indication = null
+                                    indication = null,
+                                    role = Role.Tab
                                 ) {
                                     if (currentRoute != item.route) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         navController.navigate(item.route) {
                                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                                             launchSingleTop = true
@@ -418,7 +514,10 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                                         }
                                     }
                                 }
-                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                                .padding(
+                                    horizontal = if (showLabels) 6.dp else 14.dp,
+                                    vertical = if (showLabels) 5.dp else 12.dp // 24 + 2×12 = 48 dp
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             TooltipBox(
@@ -428,14 +527,28 @@ fun FloatingBottomNavigation(navController: NavController, hazeState: HazeState)
                                 tooltip = { PlainTooltip { Text(stringResource(item.labelRes)) } },
                                 state = tooltipState
                             ) {
-                                Icon(
-                                    imageVector = if (isSelected) item.activeIcon else item.inactiveIcon,
-                                    contentDescription = stringResource(item.labelRes),
-                                    tint = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .scale(iconScale)
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        imageVector = if (isSelected) item.activeIcon else item.inactiveIcon,
+                                        contentDescription = stringResource(item.labelRes),
+                                        tint = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .scale(iconScale)
+                                    )
+                                    // Optionale Beschriftung (Einstellung „Nav-Labels“)
+                                    if (showLabels) {
+                                        Text(
+                                            text = stringResource(item.labelRes),
+                                            fontFamily = AppTheme.Body,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 11.sp,
+                                            maxLines = 1,
+                                            color = if (isSelected) AppTheme.YellowAccent else AppTheme.TextSecondary,
+                                            modifier = Modifier.clearAndSetSemantics { } // Icon trägt schon das Label
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

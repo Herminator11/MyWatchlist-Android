@@ -1,46 +1,91 @@
 package com.example.mywatchlist.ui.theme
 
+import android.provider.Settings
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
-// Committetes, dunkles Farbschema – kein Material-You-Dynamic-Color
-// mehr, damit der Gold/Noir-Look überall konsistent greift (Ripples,
-// Cursor, Auswahlfarben, Standard-Material-Komponenten).
-private val CinemaColorScheme = darkColorScheme(
-    primary = AppTheme.YellowAccent,
-    onPrimary = AppTheme.DarkBg,
-    secondary = AppTheme.GoldBright,
-    onSecondary = AppTheme.DarkBg,
-    background = AppTheme.DarkBg,
-    onBackground = AppTheme.TextPrimary,
-    surface = AppTheme.DarkSurface,
-    onSurface = AppTheme.TextPrimary,
-    surfaceVariant = AppTheme.DarkSurface2,
-    onSurfaceVariant = AppTheme.TextSecondary,
-    outline = AppTheme.TextTertiary
+// Material-ColorScheme wird aus der aktiven Cinema-Palette abgeleitet,
+// damit Standard-Komponenten (Ripples, Cursor, DatePicker, Switches,
+// Sheets) automatisch im Gold/Noir-Look erscheinen.
+private fun CinemaColors.toColorScheme() = darkColorScheme(
+    primary = accent,
+    onPrimary = onAccent,
+    primaryContainer = ember,
+    onPrimaryContainer = accentBright,
+    secondary = accentBright,
+    onSecondary = onAccent,
+    background = bg,
+    onBackground = textPrimary,
+    surface = surface,
+    onSurface = textPrimary,
+    surfaceVariant = surface2,
+    onSurfaceVariant = textSecondary,
+    surfaceContainer = surface,
+    surfaceContainerHigh = surface2,
+    surfaceContainerHighest = surface2,
+    surfaceContainerLow = surface,
+    inverseSurface = textPrimary,
+    inverseOnSurface = bg,
+    outline = textTertiary,
+    outlineVariant = surface2,
+    scrim = scrim,
+    error = danger,
+    onError = textPrimary,
+)
+
+// Zentrale Rundungen statt verstreuter RoundedCornerShape(…)-Literale.
+val CinemaShapes = Shapes(
+    extraSmall = RoundedCornerShape(6.dp),  // Tags, Badges
+    small = RoundedCornerShape(12.dp),      // Buttons, Aktions-Kacheln
+    medium = RoundedCornerShape(16.dp),     // Karten, Settings-Cards
+    large = RoundedCornerShape(20.dp),      // Chips, Sheets
+    extraLarge = RoundedCornerShape(32.dp), // Floating-Navigation
 )
 
 @Composable
 fun MyWatchlistTheme(
-    // Parameter bleiben aus Kompatibilitätsgründen erhalten, werden
-    // aber ignoriert: die App ist bewusst durchgehend dunkel.
-    darkTheme: Boolean = true,
-    dynamicColor: Boolean = false,
+    colors: CinemaColors = NoirGold,
+    forceReduceMotion: Boolean = false,
+    hapticsEnabled: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(
-        colorScheme = CinemaColorScheme,
-        typography = Typography
+    val context = LocalContext.current
+    // System „Animationen entfernen“ (Entwickler-/Bedienungshilfen) respektieren.
+    val systemReduceMotion = remember(context) {
+        runCatching {
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f
+            ) == 0f
+        }.getOrDefault(false)
+    }
+
+    CompositionLocalProvider(
+        LocalCinemaColors provides colors,
+        LocalReduceMotion provides (systemReduceMotion || forceReduceMotion),
+        LocalHapticsEnabled provides hapticsEnabled,
     ) {
-        // Body-Default app-weit: jeder Text ohne explizite Schrift
-        // erbt Barlow – an EINER Stelle gesetzt statt überall.
-        CompositionLocalProvider(
-            LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = AppTheme.Body)
+        MaterialTheme(
+            colorScheme = colors.toColorScheme(),
+            typography = CinemaTypography,
+            shapes = CinemaShapes,
         ) {
-            content()
+            // Body-Default app-weit: jeder Text ohne explizite Schrift
+            // erbt Barlow – an EINER Stelle gesetzt statt überall.
+            CompositionLocalProvider(
+                LocalTextStyle provides LocalTextStyle.current.copy(fontFamily = AppTheme.Body)
+            ) {
+                content()
+            }
         }
     }
 }

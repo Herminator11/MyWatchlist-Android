@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.roborazzi)
 }
 
 // TMDB-API-Key aus local.properties lesen (nicht im Repo).
@@ -30,15 +31,27 @@ android {
         //   PATCH (z): abwärtskompatible Bugfixes        -> nur bei reinen Fehlerbehebungen.
         // versionCode muss bei JEDEM Store-Release monoton steigen (einfach +1).
         // Die UI (SettingsScreen) liest BuildConfig.VERSION_NAME – hier ist die einzige Stelle zum Pflegen.
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "TMDB_API_KEY", "\"$tmdbApiKey\"")
     }
 
+    // Tests auf Gerät laufen gegen "MyWatchList 2" (v2), NIE gegen die Original-App.
+    testBuildType = "v2"
+
     buildTypes {
+        // "MyWatchList 2": eigenständige Test-App mit eigenem Paket (…mywatchlist.v2),
+        // eigener Datenbank und eigenem DataStore. Läuft parallel zur Original-App
+        // und kann deren Daten technisch nicht verändern.
+        create("v2") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".v2"
+            versionNameSuffix = "-v2"
+            matchingFallbacks += listOf("debug")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -54,6 +67,14 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    // Robolectric/Roborazzi: Screenshots auf der JVM – kein Gerät, keine echte Datenbank.
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        // Zielordner der A/B-Screenshots: ./gradlew recordRoborazziV2 -Pab.out=/abs/pfad
+        unitTests.all { test ->
+            (project.findProperty("ab.out") as String?)?.let { test.systemProperty("ab.out", it) }
+        }
     }
 }
 
@@ -86,6 +107,9 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.3.0")
     implementation("sh.calvin.reorderable:reorderable:2.4.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.sonner)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
@@ -94,6 +118,15 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
     testImplementation("org.mockito:mockito-core:5.4.0")
+
+    // Screenshot-Tests (JVM, für den A/B-Vergleich unter ab-test/)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.androidx.glance.appwidget.testing)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    "v2Implementation"(libs.androidx.compose.ui.test.manifest)
 
     // Instrumented Tests (Android)
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.components.sheets
+import com.example.mywatchlist.ui.components.common.CinemaDatePickerDialog
 import androidx.compose.ui.res.stringResource
 import com.example.mywatchlist.R
 import com.example.mywatchlist.data.remote.*
@@ -155,7 +156,7 @@ fun AddToListSheet(
                         },
                         colors = CheckboxDefaults.colors(
                             checkedColor = AppTheme.YellowAccent,
-                            checkmarkColor = Color.Black,
+                            checkmarkColor = AppTheme.OnAccent,
                             uncheckedColor = AppTheme.TextSecondary
                         )
                     )
@@ -187,7 +188,7 @@ fun AddToListSheet(
                             onCheckedChange = { if (it) selectedCategory = category },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = AppTheme.YellowAccent,
-                                checkmarkColor = Color.Black,
+                                checkmarkColor = AppTheme.OnAccent,
                                 uncheckedColor = AppTheme.TextSecondary
                             )
                         )
@@ -286,7 +287,7 @@ fun AddToListSheet(
                     .padding(horizontal = 20.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AppTheme.YellowAccent,
-                    contentColor = Color.Black,
+                    contentColor = AppTheme.OnAccent,
                     disabledContainerColor = AppTheme.DarkSurface2,
                     disabledContentColor = AppTheme.TextSecondary
                 ),
@@ -299,48 +300,15 @@ fun AddToListSheet(
 
     // ── DATE PICKER DIALOG ───────────────────────────────────
     if (showDatePickerDialog) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDateMillis
+        CinemaDatePickerDialog(
+            initialSelectedDateMillis = selectedDateMillis,
+            onConfirm = { millis, display ->
+                selectedDateDisplay = display
+                selectedDateMillis = millis
+                showDatePickerDialog = false
+            },
+            onDismiss = { showDatePickerDialog = false },
+            onConfirmWithoutSelection = { showDatePickerDialog = false }
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePickerDialog = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val millis = datePickerState.selectedDateMillis
-                        if (millis != null) {
-                            val sdf = java.text.SimpleDateFormat(
-                                "dd.MM.yyyy", java.util.Locale.getDefault()
-                            )
-                            selectedDateDisplay = sdf.format(java.util.Date(millis))
-                            selectedDateMillis = millis
-                        }
-                        showDatePickerDialog = false
-                    }
-                ) { Text(stringResource(R.string.action_confirm), color = AppTheme.YellowAccent) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePickerDialog = false }) {
-                    Text(stringResource(R.string.action_cancel), color = AppTheme.TextSecondary)
-                }
-            },
-            colors = DatePickerDefaults.colors(containerColor = AppTheme.DarkSurface)
-        ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    containerColor = AppTheme.DarkSurface,
-                    titleContentColor = AppTheme.TextPrimary,
-                    headlineContentColor = AppTheme.TextPrimary,
-                    weekdayContentColor = AppTheme.TextSecondary,
-                    subheadContentColor = AppTheme.TextSecondary,
-                    dayContentColor = AppTheme.TextPrimary,
-                    selectedDayContainerColor = AppTheme.YellowAccent,
-                    selectedDayContentColor = Color.Black,
-                    todayContentColor = AppTheme.YellowAccent,
-                    todayDateBorderColor = AppTheme.YellowAccent
-                )
-            )
-        }
     }
 }
