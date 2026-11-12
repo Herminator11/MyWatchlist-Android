@@ -27,6 +27,7 @@ class BackupCodecTest {
         assertThrows(BackupCodec.InvalidBackupException::class.java) { BackupCodec.decode("not json {") }
         assertThrows(BackupCodec.InvalidBackupException::class.java) { BackupCodec.decode("""{"app":"Other","format":1,"entries":[]}""") }
         assertThrows(BackupCodec.InvalidBackupException::class.java) { BackupCodec.decode("""{"app":"MyWatchlist","format":99,"entries":[]}""") }
+        assertThrows(BackupCodec.InvalidBackupException::class.java) { BackupCodec.decode("""{"app":"MyWatchlist","format":0,"entries":[]}""") }
         assertThrows(BackupCodec.InvalidBackupException::class.java) { BackupCodec.decode("""{"app":"MyWatchlist","format":1}""") }
     }
 

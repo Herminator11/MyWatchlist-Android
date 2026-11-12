@@ -1,5 +1,6 @@
 package com.example.mywatchlist
 import com.example.mywatchlist.data.SettingsRepository
+import com.example.mywatchlist.data.remote.TmdbConfig
 import com.example.mywatchlist.data.local.AppDatabase
 import com.example.mywatchlist.widget.WatchlistWidget
 import kotlinx.coroutines.CoroutineScope
@@ -51,6 +52,15 @@ class MyWatchlistApp : Application() {
                 .build()
         )
         observeForWidgets()
+        observeTmdbLanguage()
+    }
+
+    // TMDB-Sprache aus den Einstellungen – app-weit, bevor irgendeine UI existiert
+    private fun observeTmdbLanguage() {
+        val settings = SettingsRepository(this)
+        appScope.launch {
+            settings.contentPrefs.collect { TmdbConfig.setting = it.tmdbLanguage }
+        }
     }
 
     // Homescreen-Widgets aktuell halten: bei jeder Listen- oder Darstellungsänderung

@@ -70,7 +70,7 @@ object BackupCodec {
             throw InvalidBackupException("not valid JSON")
         } ?: throw InvalidBackupException("empty file")
         if (file.app != APP_ID) throw InvalidBackupException("not a MyWatchlist backup")
-        if (file.format == null || file.format > FORMAT) throw InvalidBackupException("unsupported format ${file.format}")
+        if (file.format == null || file.format < 1 || file.format > FORMAT) throw InvalidBackupException("unsupported format ${file.format}")
         val raw = file.entries ?: throw InvalidBackupException("no entries")
 
         val valid = raw.mapNotNull { it?.toEntityOrNull() }

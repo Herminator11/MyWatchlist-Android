@@ -105,7 +105,9 @@ class WatchlistWidget : GlanceAppWidget() {
         val initialAppearance = settings.appearance.first()
 
         provideContent {
-            val all by dao.getAllMoviesFlow().collectAsState(initialAll)
+            // Flow einmal anlegen – sonst startet jede Recomposition eine neue Room-Abfrage
+            val allFlow = remember { dao.getAllMoviesFlow() }
+            val all by allFlow.collectAsState(initialAll)
             val appearance by settings.appearance.collectAsState(initialAppearance)
             val list = WidgetList.fromName(currentState<Preferences>()[LIST_KEY])
             val entries = remember(all, list) { WidgetData.select(list, all) }
@@ -157,7 +159,8 @@ internal fun WidgetContent(context: Context, list: WidgetList, entries: List<Mov
                 )
             }
             else -> LazyColumn {
-                items(entries, itemId = { it.id.toLong() * 31 + it.listType.hashCode() + it.seasonNumber.hashCode() }) { e ->
+                // Keine eigene itemId: eine Hash-Summe kann kollidieren, Glance vergibt sonst eindeutige IDs
+                items(entries) { e ->
                     EntryRow(c, e, posters[e.posterPath], showPosters, open)
                 }
             }

@@ -139,7 +139,7 @@ fun NavigationSettingsScreen(
                         )
                         val border by animateColorAsState(
                             if (isStart) AppTheme.YellowAccent.copy(alpha = 0.55f) else AppTheme.DarkSurface2,
-                            animationSpec = CinemaMotion.effects(LocalReduceMotion.current),
+                            animationSpec = CinemaMotion.colorFade(LocalReduceMotion.current),
                             label = "startBorder"
                         )
                         val moveUp = stringResource(R.string.nav_settings_move_up, label)

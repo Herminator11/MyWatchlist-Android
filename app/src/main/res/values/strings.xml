@@ -148,9 +148,10 @@
     <string name="backup_restore_missing">%1$d of them are missing and will be added.</string>
     <string name="backup_restore_nothing">Everything in this backup is already in your lists.</string>
     <string name="backup_restore_safe">Entries you already have stay exactly as they are.</string>
-    <string name="backup_restore_skipped">%1$d invalid entries in the file will be skipped.</string>
+    <string name="backup_restore_skipped">%1$d invalid or duplicate entries in the file will be skipped.</string>
     <string name="backup_restore_confirm">Add entries</string>
     <string name="backup_restored">%1$d entries added</string>
+    <string name="backup_restore_failed">Restore failed – your lists were not changed</string>
     <string name="export_doc_title">MyWatchlist Export</string>
     <string name="export_saved">List exported</string>
     <string name="export_failed">Could not save file</string>

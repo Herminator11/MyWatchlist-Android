@@ -1,4 +1,5 @@
 package com.example.mywatchlist.ui.screens
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.mywatchlist.data.ListPrefs
 import com.example.mywatchlist.data.AppearancePrefs
 import com.example.mywatchlist.ui.theme.LocalHapticsEnabled
@@ -219,6 +220,7 @@ fun MainScreenApp(
     ) {
         composable("main") {
             MainContent(
+                settingsViewModel = settingsViewModel,
                 onOpenSettings = { rootNavController.navigate(ROUTE_SETTINGS) },
                 openTabRequest = openTabRequest,
                 onOpenTabHandled = onOpenTabHandled
@@ -263,13 +265,15 @@ fun MainScreenApp(
 
 @Composable
 private fun MainContent(
+    // Activity-weite Instanz von außen: ein eigenes viewModel() hier wäre an den
+    // NavBackStackEntry gebunden (zweite Instanz, navConfig startet wieder bei null).
+    settingsViewModel: SettingsViewModel,
     onOpenSettings: () -> Unit,
     openTabRequest: String? = null,
     onOpenTabHandled: () -> Unit = {},
 ) {
     val navController = rememberNavController()
     val libraryViewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory)
-    val settingsViewModel: SettingsViewModel = viewModel()
 
     val autoHideNavBar by settingsViewModel.autoHideNavBar.collectAsStateWithLifecycle()
     val navConfig by settingsViewModel.navConfig.collectAsStateWithLifecycle()
@@ -324,6 +328,11 @@ private fun MainContent(
         return
     }
 
+    // Start-Tab nur beim ersten Aufbau übernehmen: ein geänderter startDestination
+    // würde den Graphen neu setzen und Back-Stack + gespeicherte Tab-Zustände löschen.
+    // Die neue Einstellung greift beim nächsten App-Start.
+    val startRoute = rememberSaveable { config.start }
+
     // Vom Widget angeforderten Tab öffnen (alle Routen sind im Graph, auch ausgeblendete)
     LaunchedEffect(openTabRequest) {
         val route = openTabRequest ?: return@LaunchedEffect
@@ -350,7 +359,7 @@ private fun MainContent(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = config.start,
+                startDestination = startRoute,
                 modifier = Modifier
                     .fillMaxSize()
                     .haze(state = hazeState)
@@ -454,7 +463,7 @@ fun FloatingBottomNavigation(
                     // Animierte Farbe für die Hintergrundkapsel (sanftes Ein-/Ausblenden)
                     val animatedBackgroundColor by animateColorAsState(
                         targetValue = if (isSelected) AppTheme.YellowAccent.copy(alpha = 0.16f) else Color.Transparent,
-                        animationSpec = CinemaMotion.effects(reduceMotion),
+                        animationSpec = CinemaMotion.colorFade(reduceMotion),
                         label = "pillColor"
                     )
 

@@ -1,5 +1,6 @@
 package com.example.mywatchlist.data.remote
 
+import com.example.mywatchlist.data.TmdbLanguage
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
@@ -175,10 +176,17 @@ interface MovieApiService {
     ): MovieDetails
 }
 
-/** Aktive TMDB-Sprache – wird von den Einstellungen gesetzt (Default: bisher en-US). */
+/**
+ * Aktive TMDB-Sprache. Gesetzt wird nur die Einstellung (in MyWatchlistApp,
+ * unabhängig von der UI); der Sprachcode wird bei JEDEM Aufruf aufgelöst,
+ * damit „Systemsprache“ einem Wechsel der Gerätesprache sofort folgt.
+ */
 object TmdbConfig {
     @Volatile
-    var language: String = "en-US"
+    var setting: TmdbLanguage = TmdbLanguage.EN
+
+    val language: String
+        get() = setting.resolve(java.util.Locale.getDefault())
 }
 
 object MovieApi {

@@ -106,20 +106,21 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
 
     // ── JSON-Backup speichern ──
-    var pendingBackup by remember { mutableStateOf<String?>(null) }
+    // Inhalt wird erst NACH der Dateiauswahl gebaut → übersteht eine Neuerstellung
+    // der Activity während der Picker offen ist (sonst bliebe eine leere Datei zurück).
     val createBackup = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
-        val json = pendingBackup
-        pendingBackup = null
-        if (uri == null || json == null) return@rememberLauncherForActivityResult
+        val build = onBuildBackup
+        if (uri == null || build == null) return@rememberLauncherForActivityResult
         scope.launch {
-            val ok = withContext(Dispatchers.IO) {
-                runCatching {
+            val ok = runCatching {
+                val json = build()
+                withContext(Dispatchers.IO) {
                     context.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
                         ?: throw java.io.IOException("openOutputStream returned null")
-                }.isSuccess
-            }
+                }
+            }.isSuccess
             toaster.show(
                 resources.getString(if (ok) R.string.backup_saved else R.string.backup_failed),
                 type = if (ok) ToastType.Success else ToastType.Error
@@ -141,9 +142,11 @@ fun SettingsScreen(
             }
             if (decoded == null) {
                 toaster.show(resources.getString(R.string.backup_invalid), type = ToastType.Error)
-            } else {
-                restorePlan = RestorePlan(decoded, onCountMissing(decoded.entries))
+                return@launch
             }
+            runCatching { onCountMissing(decoded.entries) }
+                .onSuccess { missing -> restorePlan = RestorePlan(decoded, missing) }
+                .onFailure { toaster.show(resources.getString(R.string.backup_restore_failed), type = ToastType.Error) }
         }
     }
 
@@ -461,11 +464,8 @@ fun SettingsScreen(
                         title = stringResource(R.string.backup_create),
                         subtitle = stringResource(R.string.backup_create_desc),
                         onClick = {
-                            scope.launch {
-                                pendingBackup = onBuildBackup()
-                                val day = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
-                                createBackup.launch("mywatchlist_backup_$day.json")
-                            }
+                            val day = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+                            createBackup.launch("mywatchlist_backup_$day.json")
                         },
                         trailing = { SettingsChevron() }
                     )
@@ -522,8 +522,13 @@ fun SettingsScreen(
                     val entries = plan.decoded.entries
                     restorePlan = null
                     if (!nothingToDo && onRestoreMissing != null) scope.launch {
-                        val added = onRestoreMissing(entries)
-                        toaster.show(resources.getString(R.string.backup_restored, added), type = ToastType.Success)
+                        runCatching { onRestoreMissing(entries) }
+                            .onSuccess { added ->
+                                toaster.show(resources.getString(R.string.backup_restored, added), type = ToastType.Success)
+                            }
+                            .onFailure {
+                                toaster.show(resources.getString(R.string.backup_restore_failed), type = ToastType.Error)
+                            }
                     }
                 }) {
                     Text(

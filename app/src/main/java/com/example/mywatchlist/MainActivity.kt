@@ -6,6 +6,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.example.mywatchlist.ui.components.cards.LocalListPrefs
 import com.example.mywatchlist.ui.viewmodel.SettingsViewModel
 import com.example.mywatchlist.ui.theme.cinemaPalette
+import com.example.mywatchlist.ui.theme.NoirGold
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
             // Bis die Einstellungen geladen sind (wenige ms): neutraler Noir-Grund
             val listPrefs = listPrefsState
             val prefs = appearance?.takeIf { listPrefs != null } ?: run {
-                Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF0B0B0D)))
+                Box(Modifier.fillMaxSize().background(NoirGold.bg))
                 return@setContent
             }
             val palette = remember(prefs.accent, prefs.amoled) { cinemaPalette(prefs.accent, prefs.amoled) }
